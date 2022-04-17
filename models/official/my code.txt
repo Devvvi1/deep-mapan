@@ -1,0 +1,29 @@
+export PROJECT_ID=phonic-envoy-344212
+
+gcloud config set project ${PROJECT_ID}
+
+gcloud beta services identity create --service tpu.googleapis.com --project $PROJECT_ID
+（返回 service-PROJECT_NUMBER@cloud-tpu.iam.gserviceaccount.com）
+
+export TPU_NAME=tputest
+export ZONE=us-central1-a
+
+gcloud alpha compute tpus tpu-vm create tputest \
+--zone=$ZONE \
+--accelerator-type=v3-8 \
+--version=tpu-vm-tf-2.8.0
+
+gcloud alpha compute tpus tpu-vm ssh tputest --zone=$ZONE
+
+'''
+
+my code 
+
+'''
+
+exit
+
+gcloud alpha compute tpus tpu-vm delete tputest \
+--zone=$ZONE
+
+gcloud compute tpus execution-groups list --zone=$ZONE
