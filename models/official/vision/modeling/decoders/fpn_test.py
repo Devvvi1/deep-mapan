@@ -34,6 +34,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
   def test_network_creation(self, input_size, min_level, max_level, panet,
                             use_separable_conv, fusion_type):
     """Test creation of FPN."""
+    print("Test creation of FPN")
     tf.keras.backend.set_image_data_format('channels_last')
 
     inputs = tf.keras.Input(shape=(input_size, input_size, 3), batch_size=1)
@@ -55,12 +56,13 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
       self.assertAllEqual(
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
+      print("feats[", level, "].shape:", feats[str(level)].shape.as_list())
 
   @parameterized.parameters(
       (256, 3, 7, False),
       (256, 3, 7, True),
   )
-  def test_network_creation_with_mobilenet(self, input_size, min_level,
+  def network_creation_with_mobilenet(self, input_size, min_level,
                                            max_level, use_separable_conv):
     """Test creation of FPN with mobilenet backbone."""
     tf.keras.backend.set_image_data_format('channels_last')
@@ -83,7 +85,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
 
-  def test_serialize_deserialize(self):
+  def serialize_deserialize(self):
     # Create a network object that sets all of its config options.
     kwargs = dict(
         input_specs=resnet.ResNet(model_id=50).output_specs,
@@ -117,4 +119,5 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
 
 if __name__ == '__main__':
+  print("This is fpn_test.py!!!")
   tf.test.main()
