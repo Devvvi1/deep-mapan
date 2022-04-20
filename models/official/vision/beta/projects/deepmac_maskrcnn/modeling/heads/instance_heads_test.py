@@ -26,12 +26,14 @@ from official.vision.beta.projects.deepmac_maskrcnn.modeling.heads import instan
 class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
 
   @parameterized.parameters(
-      (1, 1, False),
-      (1, 2, False),
-      (2, 1, False),
-      (2, 2, False),
+      # (1, 1, False, False),
+      # (1, 2, False, False),
+      # (2, 1, False, False),
+      (1, 2, 2, False, False),
+      (2, 2, 2, False, True),
   )
-  def test_forward(self, upsample_factor, num_convs, use_sync_bn):
+  def test_forward(self, num, upsample_factor, num_convs, use_sync_bn, panet):
+    print("---------------------------", num, "Test forward of Deep Mask Head---------------------------")
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
         upsample_factor=upsample_factor,
@@ -45,14 +47,22 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         kernel_regularizer=None,
         bias_regularizer=None,
     )
-    roi_features = np.random.rand(2, 10, 14, 14, 16)
+    # roi_features = np.random.rand(2, 10, 14, 14, 16)
+    if not panet:
+        roi_features = np.random.rand(2, 10, 14, 14, 16)
+    else:
+        roi_features = []
+        for i in range(3, 7+1):
+            roi_features.append(np.random.rand(2, 10, 14, 14, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
+    masks = mask_head([roi_features, roi_classes], panet=panet)
     self.assertAllEqual(
         masks.numpy().shape,
         [2, 10, 14 * upsample_factor, 14 * upsample_factor])
+    print("------------------------------------------------------------------------------------")
 
   def test_serialize_deserialize(self):
+    print("---------------------------Test serialization of Deep Mask Head---------------------------")
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
         upsample_factor=2,
@@ -70,18 +80,39 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
     new_mask_head = deep_instance_heads.DeepMaskHead.from_config(config)
     self.assertAllEqual(
         mask_head.get_config(), new_mask_head.get_config())
+    print("------------------------------------------------------------------------------------------")
 
-  def test_forward_class_agnostic(self):
+  @parameterized.parameters(
+      (1, 3, 'default', False),
+      (2, 9, 'default', True),
+      (3, 9, 'Fully-Connected', True),
+  )
+  def test_forward_class_agnostic(self, num, num_classes, convnet_variant, panet):
+    print("---------------------------", num, "Test forward of class agnostic---------------------------")
     mask_head = deep_instance_heads.DeepMaskHead(
-        num_classes=3,
-        class_agnostic=True
+        num_classes=num_classes,
+        class_agnostic=True,
+        convnet_variant=convnet_variant
     )
-    roi_features = np.random.rand(2, 10, 14, 14, 16)
+    # roi_features = np.random.rand(2, 10, 14, 14, 16)
+    if not panet:
+        roi_features = np.random.rand(2, 10, 14, 14, 16)
+    else:
+        roi_features = []
+        for i in range(3, 7+1):
+            roi_features.append(np.random.rand(2, 10, 14, 14, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
+    masks = mask_head([roi_features, roi_classes], panet=panet)
+    print("masks.shape:", masks.numpy().shape)
     self.assertAllEqual(masks.numpy().shape, [2, 10, 28, 28])
+    print("------------------------------------------------------------------------------------")
 
-  def allowed_mask_class_ids(self):
+  @parameterized.parameters(
+      (1, False),
+      (2, True),
+  )
+  def test_forward_hourglass20(self, num, panet):
+    print("---------------------------", num, "Test forward of HG-20---------------------------")
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
         class_agnostic=True,
@@ -89,10 +120,17 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         num_filters=32,
         upsample_factor=2
     )
-    roi_features = np.random.rand(2, 10, 16, 16, 16)
+    # roi_features = np.random.rand(2, 10, 16, 16, 16)
+    if not panet:
+        roi_features = np.random.rand(2, 10, 16, 16, 16)
+    else:
+        roi_features = []
+        for i in range(3, 7+1):
+            roi_features.append(np.random.rand(2, 10, 16, 16, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
+    masks = mask_head([roi_features, roi_classes], panet=panet)
     self.assertAllEqual(masks.numpy().shape, [2, 10, 32, 32])
+    print("---------------------------------------------------------------------------")
 
 
 if __name__ == '__main__':

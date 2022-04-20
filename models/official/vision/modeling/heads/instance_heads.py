@@ -87,7 +87,7 @@ class DetectionHead(tf.keras.layers.Layer):
 
     if tf.keras.backend.image_data_format() == 'channels_last':
       self._bn_axis = -1
-    else:
+    else:file:/C:/MUST/Graduation_Project/DLML/Code/github_clone_workspace/deep-mapan/models/official/vision/beta/projects/deepmac_maskrcnn/modeling/heads/instance_heads.py
       self._bn_axis = 1
     self._activation = tf_utils.get_activation(activation)
 

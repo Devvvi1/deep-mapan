@@ -34,7 +34,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
   def test_network_creation(self, input_size, min_level, max_level, panet,
                             use_separable_conv, fusion_type):
     """Test creation of FPN."""
-    print("Test creation of FPN")
+    print("---------------------------Test creation of FPN---------------------------")
     tf.keras.backend.set_image_data_format('channels_last')
 
     inputs = tf.keras.Input(shape=(input_size, input_size, 3), batch_size=1)
@@ -57,6 +57,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
       print("feats[", level, "].shape:", feats[str(level)].shape.as_list())
+    print("--------------------------------------------------------------------------")
 
   @parameterized.parameters(
       (256, 3, 7, False),
