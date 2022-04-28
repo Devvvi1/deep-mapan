@@ -240,7 +240,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
     
     x = self._call_convnet_variant(x, panet=panet)
     
-    logits_ff = None
+    logits_ff = []
     if panet and isinstance(x, List):
         print("In instance_heads.py(DeepMaskHead), FF is valid")
         x_ff = x[1]
@@ -276,11 +276,12 @@ class DeepMaskHead(tf.keras.layers.Layer):
            self._config_dict['num_classes']])
     print("logits.shape before fusion:", tf.shape(logits))
     
-    if logits_ff:
+    if isinstance(logits_ff, tf.Tensor) and panet:
         # 怎么将 logits_ff 先 reshape 成 1类，再复制为 num_class 类，最后再相加融合？
         # x[1] = x[1].view(-1, 1, cfg.MRCNN.RESOLUTION, cfg.MRCNN.RESOLUTION)
         # x[1] = x[1].repeat(1, cfg.MODEL.NUM_CLASSES, 1, 1)
         # _, _, _, _, num_classes = logits.get_shape().as_list()
+        print("In instance_heads.py(DeepMaskHead), fusion is valid")
         logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
