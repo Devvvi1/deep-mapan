@@ -301,14 +301,14 @@ class DeepMaskHead(tf.keras.layers.Layer):
     print("-------------------------------------")
     return mask_outputs
 
-  def _build_convnet_variant(self, input_shape: Union[tf.TensorShape, List[tf.TensorShape]]):
+  def _build_convnet_variant(self, input_shape):
   
     print("-------- DeepMaskHead._build_convnet_variant() --------")
-    print("input_shape:", input_shape)
-    print("len(input_shape):", len(input_shape))
+    print("input_shape[0]:", input_shape[0])
+    print("len(input_shape[0]):", len(input_shape[0]))
     print("crop_size is:", self._config_dict['crop_size'])
-    if isinstance(input_shape, List):
-        num_levels = len(input_shape)
+    if isinstance(input_shape[0], List):
+        num_levels = len(input_shape[0])
     else:
         num_levels = 1
     print("num_levels:", num_levels)
