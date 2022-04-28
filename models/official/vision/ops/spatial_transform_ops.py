@@ -171,7 +171,7 @@ def multilevel_crop_and_resize(features,
     print("features.shape:[{},{},{},{}]".format(batch_size, max_feature_height, max_feature_width, num_filters))
 
     num_boxes = tf.shape(boxes)[1]
-    print("num_boxes:", num_boxes)
+    print("boxes.shape:", tf.shape(boxes))
 
     # ------------------ Stack feature pyramid into a features_all of shape -------------------#
     # [batch_size, levels, height, width, num_filters].
@@ -208,21 +208,22 @@ def multilevel_crop_and_resize(features,
     box_width = boxes[:, :, 3] - boxes[:, :, 1]
     box_height = boxes[:, :, 2] - boxes[:, :, 0]
 
-    areas_sqrt = tf.sqrt(
-        tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
-
-    levels = tf.cast(
-        tf.math.floordiv(
-            tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
-            tf.math.log(2.0)) + 4.0,
-        dtype=tf.int32)
-    # Maps levels between [min_level, max_level].
-    levels = tf.minimum(max_level, tf.maximum(levels, min_level))
-
     if specified_level:  # 直接使用指定 level
-        levels = tf.add(tf.subtract(levels, levels), specified_level)
-        levels2 = tf.zeros([batch_size, num_boxes])
-        print("levels2.shape:", tf.shape(levels2))
+        # levels = tf.add(tf.subtract(levels, levels), specified_level)
+        levels = tf.zeros([batch_size, num_boxes])
+        levels = tf.add(levels, specified_level)
+        print("levels2.shape:", tf.shape(levels))
+    else:
+        areas_sqrt = tf.sqrt(
+            tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
+
+        levels = tf.cast(
+            tf.math.floordiv(
+                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
+                tf.math.log(2.0)) + 4.0,
+            dtype=tf.int32)
+        # Maps levels between [min_level, max_level].
+        levels = tf.minimum(max_level, tf.maximum(levels, min_level))
 
     # ------------------ Projects box location and sizes to corresponding feature levels -------------------#
     # 将 boxes 从原图坐标转化到对应特征图的坐标，期间不存在量化操作
