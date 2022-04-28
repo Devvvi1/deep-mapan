@@ -255,7 +255,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         x_ff = self._fc_norms(x_ff)
         x_ff = self._activation(x_ff)
         logits_ff = x_ff
-        print("logits_ff.shape after fcs:", logits_ff.get_shape().as_list())
+        print("logits_ff.shape after fcs:", tf.shape(logits_ff))
 
     x = self._deconv(x)
     x = self._deconv_bn(x)
@@ -273,7 +273,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
           logits,
           [-1, num_rois, mask_height, mask_width,
            self._config_dict['num_classes']])
-    print("logits.shape before fusion:", logits.get_shape().as_list())
+    print("logits.shape before fusion:", tf.shape(logits))
     
     if logits_ff:
         # 怎么将 logits_ff 先 reshape 成 1类，再复制为 num_class 类，最后再相加融合？
@@ -282,7 +282,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # _, _, _, _, num_classes = logits.get_shape().as_list()
         logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
         logits = tf.add(logits, logits_ff)
-        print("logits.shape after fusion:", logits.get_shape().as_list())
+        print("logits.shape after fusion:", tf.shape(logits))
 
     batch_indices = tf.tile(
         tf.expand_dims(tf.range(batch_size), axis=1), [1, num_rois])
@@ -318,6 +318,14 @@ class DeepMaskHead(tf.keras.layers.Layer):
     if variant == 'default':
       conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
       bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
+
+      old_filters = conv_kwargs['filters']
+      new_filters = input_shape[0][0][-1]
+      ori_filters = self._config_dict['num_filters']
+      print("conv_kwargs['filters']:", old_filters)
+      print("input_shape['filters']:", new_filters)
+      print("self._config_dict['num_filters']:", ori_filters)
+      conv_kwargs.update({'filters': new_filters})
       
       # ------------ conv_head + nomrs -------------#
       num_convs_start = 0
@@ -343,6 +351,15 @@ class DeepMaskHead(tf.keras.layers.Layer):
     elif variant == 'fully-connected':
         conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
         bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
+
+        old_filters = conv_kwargs['filters']
+        new_filters = input_shape[0][0][-1]
+        ori_filters = self._config_dict['num_filters']
+        print("conv_kwargs['filters']:", old_filters)
+        print("input_shape['filters']:", new_filters)
+        print("self._config_dict['num_filters']:", ori_filters)
+
+        conv_kwargs.update({'filters': new_filters})
 
         # ------------ conv_head + nomrs -------------#
         self._conv_head = []
@@ -370,10 +387,11 @@ class DeepMaskHead(tf.keras.layers.Layer):
         bn_name = 'mask-conv-bn-fc_{}'.format(0)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
-        print("self._config_dict['num_filters']:", self._config_dict['num_filters'])
-        new_filters = input_shape[0][0][-1]
-        old_filters = conv_kwargs['filters']
-        print("filters(new old):", new_filters, old_filters)
+        # new_filters = input_shape[0][0][-1]
+        # old_filters = conv_kwargs['filters']
+        # print("filters(new old):", new_filters, old_filters)
+        # conv_kwargs.update({'filters': new_filters/2})
+
         conv_kwargs.update({'filters': new_filters/2})
         conv_name = 'mask-conv-fc_{}'.format(1)
         self._conv_fc.append(conv_op(name=conv_name, **conv_kwargs))
@@ -427,7 +445,6 @@ class DeepMaskHead(tf.keras.layers.Layer):
           x = x[0]
       return x
 
-      
   def _call_convnet_variant(self, x, panet: bool = None):
 
     variant = self._config_dict['convnet_variant']
