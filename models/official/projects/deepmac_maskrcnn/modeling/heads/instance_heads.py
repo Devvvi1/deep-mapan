@@ -243,13 +243,13 @@ class DeepMaskHead(tf.keras.layers.Layer):
     logits_ff = None
     if panet and isinstance(x, List):
         print("In instance_heads.py(DeepMaskHead), FF is valid")
-        x = x[0]
         x_ff = x[1]
+        x = x[0]
         # x_ff 的 reshape 是否正确
-        # _, _, _, _, filters = x_ff.get_shape().as_list()
+        _, _, _, filters = x_ff.get_shape().as_list()
         print("x_ff.shape:", tf.shape(x_ff))
         print("x.shape:", tf.shape(x))
-        filters = tf.shape(x_ff)[-1]
+        # filters = tf.shape(x_ff)[-1]
         print("x_ff.filters:", filters)
         x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
         x_ff = self._fcs(x_ff)
