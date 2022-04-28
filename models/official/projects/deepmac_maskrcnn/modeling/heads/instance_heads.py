@@ -246,10 +246,11 @@ class DeepMaskHead(tf.keras.layers.Layer):
         x = x[0]
         x_ff = x[1]
         # x_ff 的 reshape 是否正确
-        _, _, _, _, filters = x_ff.get_shape().as_list()
-        print("x_ff.shape:", x_ff.get_shape().as_list())
-        print("x_ff.filters:", filters)
-        x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
+        # _, _, _, _, filters = x_ff.get_shape().as_list()
+        print("x_ff.shape:", tf.shape(x_ff))
+        print("x.shape:", tf.shape(x))
+        # print("x_ff.filters:", filters)
+        x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters/2])
         x_ff = self._fcs(x_ff)
         x_ff = self._fc_norms(x_ff)
         x_ff = self._activation(x_ff)
@@ -370,11 +371,13 @@ class DeepMaskHead(tf.keras.layers.Layer):
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
         print("self._config_dict['num_filters']:", self._config_dict['num_filters'])
-        filters = input_shape[0][0][-1]
-        print("filters:", filters)
-        conv_kwargs.update({'filters': filters})
+        new_filters = input_shape[0][0][-1]
+        old_filters = conv_kwargs['filters']
+        print("filters(new old):", new_filters, old_filters)
+        conv_kwargs.update({'filters': new_filters/2})
         conv_name = 'mask-conv-fc_{}'.format(1)
         self._conv_fc.append(conv_op(name=conv_name, **conv_kwargs))
+        conv_kwargs.update({'filters': old_filters})
         bn_name = 'mask-conv-bn-fc_{}'.format(1)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
