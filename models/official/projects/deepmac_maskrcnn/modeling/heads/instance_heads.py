@@ -144,7 +144,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
     conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
     # 根据 convnet_variant 标识，构建相应的 mask head 
-    self._build_convnet_variant()
+    self._build_convnet_variant(input_shape)
 
     self._deconv = tf.keras.layers.Conv2DTranspose(
         filters=self._config_dict['num_filters'],
