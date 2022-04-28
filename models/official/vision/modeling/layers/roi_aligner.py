@@ -78,6 +78,7 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
         print("max_level:", max_level)
         roi_features = []
         for i in range(min_level, max_level + 1):
+            print("NO.{} roi aligner".format(i+1))
             feats = spatial_transform_ops.multilevel_crop_and_resize(
                 features,
                 boxes,
