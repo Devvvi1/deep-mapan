@@ -219,7 +219,7 @@ class DetectionHead(tf.keras.layers.Layer):
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
         for i in range(len(roi_features)):
-            x[i] = tf.reshape(roi_features[i], [-1, height, width, filters])
+            x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
         print("len(x):", len(x))
         # ------------ Conv_head for each level -------------#
         for i in range(len(x)):
@@ -230,11 +230,11 @@ class DetectionHead(tf.keras.layers.Layer):
         for i in range(1, len(x)):
             x[0] = tf.maximum(x[0], x[i])
         x = x[0]
-        num = 1
+        # num = 1
     else:
         _, num_rois, height, width, filters = roi_features.get_shape().as_list()
         x = tf.reshape(roi_features, [-1, height, width, filters])
-        num = 0
+        # num = 0
     print("num_rois:", num_rois)
     print("height & width:", height, width)
     print("filters:", filters)

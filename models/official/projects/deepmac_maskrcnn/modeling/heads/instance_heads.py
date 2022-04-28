@@ -224,7 +224,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             batch_size = tf.shape(roi_features[0])[0]
         x = []
         for i in range(len(roi_features)):
-            x[i] = tf.reshape(roi_features[i], [-1, height, width, filters])
+            x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
         print("len(x):", len(x))
     else:
         features_shape = tf.shape(roi_features)
