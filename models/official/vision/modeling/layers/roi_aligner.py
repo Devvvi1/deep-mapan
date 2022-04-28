@@ -60,13 +60,14 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
     """
     print("-------- RoI Aligner info --------")
     if not panet:
+        print("panet:False")
         roi_features = spatial_transform_ops.multilevel_crop_and_resize(
             features,
             boxes,
             output_size=self._config_dict['crop_size'],
             sample_offset=self._config_dict['sample_offset'])
     else:
-        print("In roi_aligner.py, panet is valid!")
+        print("panet:True")
         # 原 roi_features 为 [batch_size, num_boxes, crop_size, crop_size, num_filters]
         # 若执行 AFP，则需 [batch_size, num_boxes, max_level-min_level+1, crop_size, crop_size, num_filters]
         # 或存于列表 [feat3, feat4, feat5, feat6, feat7]
