@@ -101,7 +101,7 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
       (3, True, False, True),
   )
   def test_forward(self, num, use_gt_boxes_for_masks, training, panet):
-    print("---------------------------Test forward of deep marc.{}---------------------------".format(num))
+    print("\n---------------------------Test forward of deep marc.{}---------------------------".format(num))
     image_size = (256, 256)
     images = np.random.rand(2, image_size[0], image_size[1], 3)
     image_shape = np.array([[224, 100], [100, 224]])
@@ -136,13 +136,13 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
       self.assertIn('detection_classes', results)
       self.assertIn('num_detections', results)
       self.assertIn('detection_masks', results)
-    print("------------------------------------------------------------------------------------")
+    print("------------------------------------------------------------------------------------\n")
 
   @parameterized.parameters(
       [(1, 5), (1, 10), (1, 15), (2, 5), (2, 10), (2, 15)]
   )
   def ttest_image_and_boxes(self, batch_size, num_boxes):
-    print("---------------------------Test image & box---------------------------")
+    print("\n---------------------------Test image & box---------------------------")
     image_size = (640, 640)
     images = np.random.rand(1, image_size[0], image_size[1], 3).astype(
         np.float32)
@@ -154,7 +154,7 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
     boxes = tf.constant(boxes)
     results = model.call_images_and_boxes(images, boxes)
     self.assertIn('detection_masks', results)
-    print("------------------------------------------------------------------------------------")
+    print("------------------------------------------------------------------------------------\n")
 
 
 if __name__ == '__main__':

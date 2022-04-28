@@ -32,7 +32,7 @@ class DetectionHeadTest(parameterized.TestCase, tf.test.TestCase):
       (2, 1, 1, False, False, True),
   )
   def test_forward(self, num, num_convs, num_fcs, use_separable_conv, use_sync_bn, panet):
-    print("---------------------------Test forward of Detection Head.{}---------------------------".format(num))
+    print("\n---------------------------Test forward of Detection Head.{}---------------------------".format(num))
     detection_head = instance_heads.DetectionHead(
         num_classes=3,
         num_convs=num_convs,
@@ -58,10 +58,10 @@ class DetectionHeadTest(parameterized.TestCase, tf.test.TestCase):
     print("boxes.shape:", boxes.numpy().shape)
     self.assertAllEqual(scores.numpy().shape, [2, 10, 3])
     self.assertAllEqual(boxes.numpy().shape, [2, 10, 12])
-    print("------------------------------------------------------------------------------------")
+    print("------------------------------------------------------------------------------------\n")
 
   def test_serialize_deserialize(self):
-    print("---------------------------Test config of Detection Head---------------------------")
+    print("\n---------------------------Test config of Detection Head---------------------------")
     detection_head = instance_heads.DetectionHead(
         num_classes=91,
         num_convs=0,
@@ -80,7 +80,7 @@ class DetectionHeadTest(parameterized.TestCase, tf.test.TestCase):
     new_detection_head = instance_heads.DetectionHead.from_config(config)
     self.assertAllEqual(
         detection_head.get_config(), new_detection_head.get_config())
-    print("------------------------------------------------------------------------------------")
+    print("------------------------------------------------------------------------------------\n")
 
 
 # class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):

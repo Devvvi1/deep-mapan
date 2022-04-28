@@ -33,7 +33,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
   def test_network_creation(self, num, input_size, min_level, max_level, panet,
                             use_separable_conv, fusion_type):
     """Test creation of FPN."""
-    print("---------------------------Test creation of FPN.{}---------------------------".format(num))
+    print("\n---------------------------Test creation of FPN.{}---------------------------".format(num))
     tf.keras.backend.set_image_data_format('channels_last')
 
     inputs = tf.keras.Input(shape=(input_size, input_size, 3), batch_size=1)
@@ -56,7 +56,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
       print("feats[", level, "].shape:", feats[str(level)].shape.as_list())
-    print("----------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------\n")
 
   @parameterized.parameters(
       (1, 256, 3, 7, False),
@@ -65,7 +65,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
   def test_network_creation_with_mobilenet(self, num, input_size, min_level,
                                            max_level, use_separable_conv):
     """Test creation of FPN with mobilenet backbone."""
-    print("---------------------------Test creation of FPN with mobilenet.{}---------------------------".format(num))
+    print("\n---------------------------Test creation of FPN with mobilenet.{}---------------------------".format(num))
     tf.keras.backend.set_image_data_format('channels_last')
 
     inputs = tf.keras.Input(shape=(input_size, input_size, 3), batch_size=1)
@@ -86,11 +86,11 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
       print("feats[", level, "].shape:", feats[str(level)].shape.as_list())
-    print("----------------------------------------------------------------------------")
+    print("----------------------------------------------------------------------------\n")
 
   def test_serialize_deserialize(self):
     # Create a network object that sets all of its config options.
-    print("---------------------------Test config of FPN---------------------------")
+    print("\n---------------------------Test config of FPN---------------------------")
     kwargs = dict(
         input_specs=resnet.ResNet(model_id=50).output_specs,
         min_level=3,
@@ -120,6 +120,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
     # If the serialization was successful, the new config should match the old.
     self.assertAllEqual(network.get_config(), new_network.get_config())
+    print("------------------------------------------------------------------------\n")
 
 
 if __name__ == '__main__':

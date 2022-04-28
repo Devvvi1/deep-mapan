@@ -87,7 +87,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
       (3, 9, 'fully-connected', True),
   )
   def test_forward_class_agnostic(self, num, num_classes, convnet_variant, panet):
-    print("---------------------------Test forward of class agnostic.{}---------------------------".format(num))
+    print("\n---------------------------Test forward of class agnostic.{}---------------------------\n".format(num))
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=num_classes,
         class_agnostic=True,
