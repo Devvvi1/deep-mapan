@@ -281,7 +281,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # x[1] = x[1].view(-1, 1, cfg.MRCNN.RESOLUTION, cfg.MRCNN.RESOLUTION)
         # x[1] = x[1].repeat(1, cfg.MODEL.NUM_CLASSES, 1, 1)
         # _, _, _, _, num_classes = logits.get_shape().as_list()
+        logits_ff = tf.expand_dims(logits_ff, -1)
+        logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
+        print("logits_ff.shape before fusion:", tf.shape(logits_ff))
         logits = tf.add(logits, logits_ff)
         print("logits.shape after fusion:", tf.shape(logits))
 
