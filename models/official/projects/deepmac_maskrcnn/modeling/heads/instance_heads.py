@@ -238,7 +238,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
     print("height & width of roi_features:", height, width)
     print("filters:", filters)
     
-    x = self._call_convnet_variant(x, panet)
+    x = self._call_convnet_variant(x, panet=panet)
     
     logits_ff = None
     if panet and isinstance(x, List):
@@ -409,18 +409,19 @@ class DeepMaskHead(tf.keras.layers.Layer):
     print("-------------------------------------------------------")
 
   def _call_AFP_convnet(self, x, panet):
-      if not panet:
-          return x
-      # ------------ Conv_head for each level -------------#
-      for i in range(len(x)):
-          x[i] = self._conv_head[i](x[i])
-          x[i] = self._conv_head_norms[i](x[i])
-          x[i] = self._activation(x[i])
-      # ------------ Fusion by max -------------#
-      for i in range(1, len(x)):
-          x[0] = tf.maximum(x[0], x[i])
-      x = x[0]
+      if panet:
+          # ------------ Conv_head for each level -------------#
+          print("In AFP, len(x) is:", len(x))
+          for i in range(len(x)):
+              x[i] = self._conv_head[i](x[i])
+              x[i] = self._conv_head_norms[i](x[i])
+              x[i] = self._activation(x[i])
+          # ------------ Fusion by max -------------#
+          for i in range(1, len(x)):
+              x[0] = tf.maximum(x[0], x[i])
+          x = x[0]
       return x
+
       
   def _call_convnet_variant(self, x, panet: bool = None):
 
