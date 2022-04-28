@@ -206,24 +206,28 @@ def multilevel_crop_and_resize(features,
     box_width = boxes[:, :, 3] - boxes[:, :, 1]
     box_height = boxes[:, :, 2] - boxes[:, :, 0]
 
-    if specified_level:  # 直接使用指定 level
-        levels = tf.cast(specified_level, tf.float32)
-    else:
-        areas_sqrt = tf.sqrt(
-            tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
+    areas_sqrt = tf.sqrt(
+        tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
 
-        levels = tf.cast(
-            tf.math.floordiv(
-                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
-                tf.math.log(2.0)) + 4.0,
-            dtype=tf.int32)
-        # Maps levels between [min_level, max_level].
-        levels = tf.minimum(max_level, tf.maximum(levels, min_level))
+    levels = tf.cast(
+        tf.math.floordiv(
+            tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
+            tf.math.log(2.0)) + 4.0,
+        dtype=tf.int32)
+    # Maps levels between [min_level, max_level].
+    levels = tf.minimum(max_level, tf.maximum(levels, min_level))
+
+    if specified_level:  # 直接使用指定 level
+        levels = tf.add(tf.sub(levels, levels), specified_level)
+        levels2 = tf.zeros([batch_size, num_boxes])
+        print("levels2.shape:", tf.shape(levels2))
 
     # ------------------ Projects box location and sizes to corresponding feature levels -------------------#
     # 将 boxes 从原图坐标转化到对应特征图的坐标，期间不存在量化操作
     # scale_to_level is the strides of each layer of the FPN Pyramid
     # 每个 level 有对应的步幅，即缩放比例
+    print("levels:", levels)
+    print("levels.shape:", tf.shape(levels))
     scale_to_level = tf.cast(
         tf.pow(tf.constant(2.0), tf.cast(levels, tf.float32)),
         dtype=boxes.dtype)

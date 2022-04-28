@@ -59,6 +59,8 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
       [batch_size, num_boxes, crop_size, crop_size, num_filters].
     """
     print("-------- RoI Aligner info --------")
+    print("features.shape:", tf.shape(features))
+    print("boxes.shape:", tf.shape(boxes))
     if not panet:
         print("panet:False")
         roi_features = spatial_transform_ops.multilevel_crop_and_resize(
@@ -78,13 +80,13 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
         print("max_level:", max_level)
         roi_features = []
         for i in range(min_level, max_level + 1):
-            print("NO.{} roi aligner".format(i+1))
+            print("NO.{} roi aligner".format(i))
             feats = spatial_transform_ops.multilevel_crop_and_resize(
                 features,
                 boxes,
                 output_size=self._config_dict['crop_size'],
                 sample_offset=self._config_dict['sample_offset'],
-                specified_level=i)
+                specified_level=int(i))
             roi_features.append(feats)
         # roi_features = tf.reshape()
     print("output size:", self._config_dict['crop_size'])
