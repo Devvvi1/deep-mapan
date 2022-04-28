@@ -16,8 +16,17 @@ gcloud alpha compute tpus tpu-vm create tputest \
 gcloud alpha compute tpus tpu-vm ssh tputest --zone=$ZONE
 
 '''
-
 my code 
+
+git clone https://github.com/Devvvi1/deep-mapan.git
+cd deep-mapan/models
+pip3 install -r official/requirements.txt
+
+python3 -m official.vision.modeling.decoders.fpn_test
+python3 -m official.vision.modeling.heads.instance_heads_test
+
+python3 -m official.projects.deepmac_maskrcnn.modeling.heads.instance_heads_test
+python3 -m official.projects.deepmac_maskrcnn.modeling.maskrcnn_model_test
 
 '''
 
