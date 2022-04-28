@@ -320,11 +320,11 @@ class DeepMaskHead(tf.keras.layers.Layer):
       
       # ------------ conv_head + nomrs -------------#
       num_convs_start = 0
-      if isinstance(input_shape, List):
+      if isinstance(input_shape[0], List):
           num_convs_start = 1
           self._conv_head = []
           self._conv_head_norms = []
-          for i in range(len(input_shape)):
+          for i in range(len(input_shape[0])):
               conv_name = 'mask-conv-head_{}_{}'.format(0, i)
               self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
               bn_name = 'mask-conv-head-bn_{}_{}'.format(0, i)
@@ -346,7 +346,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # ------------ conv_head + nomrs -------------#
         self._conv_head = []
         self._conv_head_norms = []
-        for i in range(len(input_shape)):
+        for i in range(len(input_shape[0])):
             conv_name = 'mask-conv-head_{}_{}'.format(0, i)
             self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
             bn_name = 'mask-conv-head-bn_{}_{}'.format(0, i)

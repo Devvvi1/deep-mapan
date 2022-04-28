@@ -483,12 +483,12 @@ class HourglassNetwork(tf.keras.Model):
 
     self.intermediate_relu = tf.keras.layers.ReLU()
 
-  def call(self, inputs):
+  def call(self, inputs, panet):
 
     if self.initial_downsample:
-      inputs = self.downsample_input(inputs)
+      inputs = self.downsample_input(inputs, panet)
     else:
-      inputs = self.conv_input(inputs)
+      inputs = self.conv_input(inputs, panet)
 
     outputs = []
 
