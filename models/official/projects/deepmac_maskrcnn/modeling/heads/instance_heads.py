@@ -249,8 +249,9 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # _, _, _, _, filters = x_ff.get_shape().as_list()
         print("x_ff.shape:", tf.shape(x_ff))
         print("x.shape:", tf.shape(x))
-        # print("x_ff.filters:", filters)
-        x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters/2])
+        filters = tf.shape(x_ff)[-1]
+        print("x_ff.filters:", filters)
+        x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
         x_ff = self._fcs(x_ff)
         x_ff = self._fc_norms(x_ff)
         x_ff = self._activation(x_ff)
@@ -355,11 +356,12 @@ class DeepMaskHead(tf.keras.layers.Layer):
         old_filters = conv_kwargs['filters']
         new_filters = input_shape[0][0][-1]
         ori_filters = self._config_dict['num_filters']
-        print("conv_kwargs['filters']:", old_filters)
-        print("input_shape['filters']:", new_filters)
+        print("old filters:", old_filters)
+        print("old filters:", new_filters)
         print("self._config_dict['num_filters']:", ori_filters)
 
         conv_kwargs.update({'filters': new_filters})
+        print("conv_kwargs['filters'] :", conv_kwargs['filters'])
 
         # ------------ conv_head + nomrs -------------#
         self._conv_head = []
@@ -387,17 +389,16 @@ class DeepMaskHead(tf.keras.layers.Layer):
         bn_name = 'mask-conv-bn-fc_{}'.format(0)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
-        # new_filters = input_shape[0][0][-1]
-        # old_filters = conv_kwargs['filters']
-        # print("filters(new old):", new_filters, old_filters)
-        # conv_kwargs.update({'filters': new_filters/2})
-
         conv_kwargs.update({'filters': new_filters/2})
+        print("conv_kwargs['filters'] update for conv fc:", conv_kwargs['filters'])
+
         conv_name = 'mask-conv-fc_{}'.format(1)
         self._conv_fc.append(conv_op(name=conv_name, **conv_kwargs))
-        conv_kwargs.update({'filters': old_filters})
         bn_name = 'mask-conv-bn-fc_{}'.format(1)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
+
+        conv_kwargs.update({'filters': new_filters})
+        print("conv_kwargs['filters'] after conv fc:", conv_kwargs['filters'])
 
         # ------------ fc + nomrs -------------#
         fc_name = 'mask-fc_{}'.format(0)
@@ -466,11 +467,14 @@ class DeepMaskHead(tf.keras.layers.Layer):
             y.append(x)
         x_fcn = y[-1]
         x_ff = y[1]
+        print("x_fcn.shape:", tf.shape(x_fcn))
+        print("x_ff.shape before conv fc:", tf.shape(x_ff))
         # conv4_fc + conv5_fc
         for conv, bn in zip(self._conv_fc, self._conv_fc_norms):
             x_ff = conv(x_ff)
             x_ff = bn(x_ff)
             x_ff = self._activation(x_ff)
+        print("x_ff.shape after conv fc:", tf.shape(x_ff))
         return [x_fcn, x_ff]
     elif variant == 'hourglass20':
       return self._hourglass(x, panet)[-1]
