@@ -211,8 +211,8 @@ def multilevel_crop_and_resize(features,
     if specified_level:  # 直接使用指定 level
         # levels = tf.add(tf.subtract(levels, levels), specified_level)
         levels = tf.zeros([batch_size, num_boxes])
-        levels = tf.add(levels, specified_level)
-        print("levels2.shape:", tf.shape(levels))
+        levels = tf.add(tf.cast(levels, tf.int32), specified_level)
+        print("levels.shape:", tf.shape(levels))
     else:
         areas_sqrt = tf.sqrt(
             tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
