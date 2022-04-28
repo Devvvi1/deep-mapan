@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
 # Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -244,6 +243,7 @@ class SpineNetMobile(tf.keras.Model):
         in_filters=in_filters,
         out_filters=out_filters,
         strides=strides,
+        se_gating_activation='hard_sigmoid',
         se_ratio=se_ratio,
         expand_ratio=expand_ratio,
         stochastic_depth_drop_rate=stochastic_depth_drop_rate,

@@ -18,20 +18,21 @@ from typing import Callable, Optional, Union, List, Tuple
 import gin
 import tensorflow as tf
 import tensorflow_addons.optimizers as tfa_optimizers
+
 from official.modeling.optimization import slide_optimizer
 from official.modeling.optimization import adafactor_optimizer
 from official.modeling.optimization import ema_optimizer
 from official.modeling.optimization import lars_optimizer
+from official.modeling.optimization import legacy_adamw
 from official.modeling.optimization import lr_schedule
 from official.modeling.optimization.configs import optimization_config as opt_cfg
-from official.nlp import optimization as nlp_optimization
 
 OPTIMIZERS_CLS = {
     'sgd': tf.keras.optimizers.SGD,
-    'sgd_experimental': tf.keras.optimizers.experimental.SGD,
+    # TODO(chenmoneygithub): experimental.SGD
     'adam': tf.keras.optimizers.Adam,
-    'adam_experimental': tf.keras.optimizers.experimental.Adam,
-    'adamw': nlp_optimization.AdamWeightDecay,
+    # TODO(chenmoneygithub): experimental.Adam
+    'adamw': legacy_adamw.AdamWeightDecay,
     'lamb': tfa_optimizers.LAMB,
     'rmsprop': tf.keras.optimizers.RMSprop,
     'lars': lars_optimizer.LARS,
@@ -57,8 +58,8 @@ WARMUP_CLS = {
 }
 
 
-def register_optimizer_cls(
-    key: str, optimizer_config_cls: tf.keras.optimizers.Optimizer):
+def register_optimizer_cls(key: str,
+                           optimizer_config_cls: tf.keras.optimizers.Optimizer):
   """Register customize optimizer cls.
 
   The user will still need to subclass data classes in
@@ -156,9 +157,12 @@ class OptimizerFactory:
   def build_optimizer(
       self,
       lr: Union[tf.keras.optimizers.schedules.LearningRateSchedule, float],
+      gradient_aggregator: Optional[Callable[
+          [List[Tuple[tf.Tensor, tf.Tensor]]], List[Tuple[tf.Tensor,
+                                                          tf.Tensor]]]] = None,
       gradient_transformers: Optional[List[Callable[
-          [List[Tuple[tf.Tensor, tf.Tensor]]], List[Tuple[tf.Tensor, tf.Tensor]]
-      ]]] = None,
+          [List[Tuple[tf.Tensor, tf.Tensor]]], List[Tuple[tf.Tensor,
+                                                          tf.Tensor]]]]] = None,
       postprocessor: Optional[Callable[[tf.keras.optimizers.Optimizer],
                                        tf.keras.optimizers.Optimizer]] = None):
     """Build optimizer.
@@ -170,6 +174,7 @@ class OptimizerFactory:
     Args:
       lr: A floating point value, or a
         tf.keras.optimizers.schedules.LearningRateSchedule instance.
+      gradient_aggregator: Optional function to overwrite gradient aggregation.
       gradient_transformers: Optional list of functions to use to transform
         gradients before applying updates to Variables. The functions are
         applied after gradient_aggregator. The functions should accept and
@@ -193,6 +198,8 @@ class OptimizerFactory:
       del optimizer_dict['global_clipnorm']
 
     optimizer_dict['learning_rate'] = lr
+    if gradient_aggregator is not None:
+      optimizer_dict['gradient_aggregator'] = gradient_aggregator
     if gradient_transformers is not None:
       optimizer_dict['gradient_transformers'] = gradient_transformers
 

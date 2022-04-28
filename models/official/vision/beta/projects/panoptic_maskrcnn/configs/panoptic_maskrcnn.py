@@ -22,7 +22,7 @@ from official.core import config_definitions as cfg
 from official.core import exp_factory
 from official.modeling import hyperparams
 from official.modeling import optimization
-from official.vision.beta.projects.deepmac_maskrcnn.configs import deep_mask_head_rcnn as deepmac_maskrcnn
+from official.projects.deepmac_maskrcnn.configs import deep_mask_head_rcnn as deepmac_maskrcnn
 from official.vision.configs import common
 from official.vision.configs import maskrcnn
 from official.vision.configs import semantic_segmentation
@@ -59,6 +59,8 @@ class TfExampleDecoder(common.TfExampleDecoder):
   """A simple TF Example decoder config."""
   # Setting this to true will enable decoding category_mask and instance_mask.
   include_panoptic_masks: bool = True
+  panoptic_category_mask_key: str = 'image/panoptic/category_mask'
+  panoptic_instance_mask_key: str = 'image/panoptic/instance_mask'
 
 
 @dataclasses.dataclass

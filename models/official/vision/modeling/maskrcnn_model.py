@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------ 1 -------------------------------------#
-# ------------ 2 -------------#
 
 """R-CNN(-RS) models."""
 
@@ -143,7 +141,7 @@ class MaskRCNNModel(tf.keras.Model):
            gt_boxes: Optional[tf.Tensor] = None,
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
-           training: Optional[bool] = None,
+           training: Optional[bool] = None, 
            panet: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
 
     model_outputs, intermediate_outputs = self._call_box_outputs(
@@ -160,7 +158,7 @@ class MaskRCNNModel(tf.keras.Model):
         matched_gt_boxes=intermediate_outputs['matched_gt_boxes'],
         matched_gt_classes=intermediate_outputs['matched_gt_classes'],
         gt_masks=gt_masks,
-        training=training,
+        training=training,  
         panet=panet)
     model_outputs.update(model_mask_outputs)
     return model_outputs
@@ -180,7 +178,7 @@ class MaskRCNNModel(tf.keras.Model):
       anchor_boxes: Optional[Mapping[str, tf.Tensor]] = None,
       gt_boxes: Optional[tf.Tensor] = None,
       gt_classes: Optional[tf.Tensor] = None,
-      training: Optional[bool] = None,
+      training: Optional[bool] = None,  
       panet: Optional[bool] = None) -> Tuple[
           Mapping[str, tf.Tensor], Mapping[str, tf.Tensor]]:
     """Implementation of the Faster-RCNN logic for boxes."""
@@ -199,7 +197,7 @@ class MaskRCNNModel(tf.keras.Model):
         'rpn_boxes': rpn_boxes,
         'rpn_scores': rpn_scores
     })
-
+    
     # ------------------ 3.Anchor boxes -------------------#
     # Generate anchor boxes for this batch if not provided.
     if anchor_boxes is None:
@@ -219,7 +217,7 @@ class MaskRCNNModel(tf.keras.Model):
     # ------------------ 4.Generate RoIs -------------------#
     current_rois, _ = self.roi_generator(rpn_boxes, rpn_scores, anchor_boxes,
                                          image_shape, training)
-
+    
     # ------------------ 5.Run fast-rcnn head -------------------#
     next_rois = current_rois
     all_class_outputs = []
@@ -252,7 +250,7 @@ class MaskRCNNModel(tf.keras.Model):
             weights=regression_weights)
         next_rois = box_ops.clip_boxes(next_rois,
                                        tf.expand_dims(image_shape, axis=1))
-
+    
     # ------------------ 6.Run detection if not training -------------------#
     if not training:
       if self._config_dict['cascade_class_ensemble']:
@@ -369,12 +367,12 @@ class MaskRCNNModel(tf.keras.Model):
                                                                 None)
     if training and gt_boxes is not None:
       rois = tf.stop_gradient(rois)
-
+      
       # 1.Roi sample:完成 roi 采样，保持正负比例为 1:3，并相应的 matched info
       current_roi_sampler = self.roi_sampler[cascade_num]
       rois, matched_gt_boxes, matched_gt_classes, matched_gt_indices = (
           current_roi_sampler(rois, gt_boxes, gt_classes))
-
+      
       # 2.Create bounding box training targets:即 box2loc，box_targets 就是 deltas 用于计算 box loss
       # Regression_weights is the bounding box refinement standard deviation for RPN
       box_targets = box_ops.encode_boxes(

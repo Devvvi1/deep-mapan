@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
 """Tests for FPN."""
 
 # Import libraries
@@ -31,7 +30,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
       (256, 3, 7, False, True, 'concat'),
   )
   # 主要测试每个 level 的特征图的 shape
-  def test_network_creation(self, input_size, min_level, max_level, panet,
+  def test_network_creation(self, input_size, min_level, max_level,
                             use_separable_conv, fusion_type):
     """Test creation of FPN."""
     print("---------------------------Test creation of FPN---------------------------")
@@ -63,7 +62,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
       (256, 3, 7, False),
       (256, 3, 7, True),
   )
-  def network_creation_with_mobilenet(self, input_size, min_level,
+  def test_network_creation_with_mobilenet(self, input_size, min_level,
                                            max_level, use_separable_conv):
     """Test creation of FPN with mobilenet backbone."""
     tf.keras.backend.set_image_data_format('channels_last')
@@ -86,7 +85,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
 
-  def serialize_deserialize(self):
+  def test_serialize_deserialize(self):
     # Create a network object that sets all of its config options.
     kwargs = dict(
         input_specs=resnet.ResNet(model_id=50).output_specs,
@@ -120,5 +119,4 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  print("This is fpn_test.py!!!")
   tf.test.main()

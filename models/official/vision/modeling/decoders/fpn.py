@@ -113,7 +113,7 @@ class FPN(tf.keras.Model):
     logging.info('FPN input_specs: %s', input_specs)
     inputs = self._build_input_pyramid(input_specs, min_level)
     backbone_max_level = min(int(max(inputs.keys())), max_level)
-
+    
     print("-------- FPN info --------")
     print("min_level:", min_level)
     print("max_level:", max_level)
@@ -164,7 +164,7 @@ class FPN(tf.keras.Model):
           kernel_regularizer=kernel_regularizer,
           bias_regularizer=bias_regularizer)(
               feats[str(level)])
-
+    
     # add for panet buttom-up path
     # panet = False
     if panet:
@@ -230,6 +230,7 @@ class FPN(tf.keras.Model):
               feats[str(level)])
     print("len(feats):", len(feats))
     print("----------------------------------")
+
     self._output_specs = {
         str(level): feats[str(level)].get_shape()
         for level in range(min_level, max_level + 1)

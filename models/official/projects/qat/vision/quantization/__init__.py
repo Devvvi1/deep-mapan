@@ -12,8 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
 """Configs package definition."""
-
-from official.projects.qat.vision.quantization import configs
-from official.projects.qat.vision.quantization import schemes

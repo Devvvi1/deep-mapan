@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
 """RetinaNet configuration definition."""
 
 import dataclasses
@@ -126,13 +125,6 @@ class DetectionGenerator(hyperparams.Config):
   # custom NMS op and override above parameters.
   tflite_post_processing: common.TFLitePostProcessingConfig = common.TFLitePostProcessingConfig(
   )
-
-  max_detections: int = 200
-  max_classes_per_detection: int = 5
-  # Regular NMS run in a multi-class fashion and is slow. Setting it to False
-  # uses class-agnostic NMS, which is faster.
-  use_regular_nms: bool = False
-  nms_score_threshold: float = 0.1
 
 
 @dataclasses.dataclass

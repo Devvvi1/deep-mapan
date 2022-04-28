@@ -103,10 +103,8 @@ def _compute_grid_positions(boxes, boundaries, output_size, sample_offset):
   box_grid_x = tf.stack(box_grid_x, axis=2)
   box_grid_y = tf.stack(box_grid_y, axis=2)
 
-  # 向下取整
   box_grid_y0 = tf.floor(box_grid_y)
   box_grid_x0 = tf.floor(box_grid_x)
-  # 限制 x0 和 y0 的范围
   box_grid_x0 = tf.maximum(tf.cast(0., dtype=box_grid_x0.dtype), box_grid_x0)
   box_grid_y0 = tf.maximum(tf.cast(0., dtype=box_grid_y0.dtype), box_grid_y0)
 
@@ -140,8 +138,7 @@ def _compute_grid_positions(boxes, boundaries, output_size, sample_offset):
 def multilevel_crop_and_resize(features,
                                boxes,
                                output_size=7,
-                               sample_offset=0.5,
-                               specified_level=None):
+                               sample_offset=0.5):
   """Crop and resize on multilevel feature pyramid.
 
   Generate the (output_size, output_size) set of pixels for each input box
@@ -173,7 +170,7 @@ def multilevel_crop_and_resize(features,
 
     num_boxes = tf.shape(boxes)[1]
 
-    # ------------------ Stack feature pyramid into a features_all of shape -------------------#
+    # Stack feature pyramid into a features_all of shape
     # [batch_size, levels, height, width, num_filters].
     features_all = []
     feature_heights = []
@@ -188,8 +185,7 @@ def multilevel_crop_and_resize(features,
           tf.reshape(features[str(level)], [batch_size, -1, num_filters]))
     features_r2 = tf.reshape(tf.concat(features_all, 1), [-1, num_filters])
 
-    # ------------------ Calculate size for each level -------------------#
-    # level_dim_sizes 为每个 level 的面积列表
+    # Calculate height_l * width_l for each level.
     level_dim_sizes = [
         feature_widths[i] * feature_heights[i]
         for i in range(len(feature_widths))
@@ -198,50 +194,38 @@ def multilevel_crop_and_resize(features,
     level_dim_offsets = [0]
     for i in range(len(feature_widths) - 1):
       level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
-    # batch_dim_size 是所有 level 的面积之和
     batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
-    # level_dim_size 是除去最后一层的所有 level 的面积之和
     level_dim_offsets = tf.constant(level_dim_offsets, tf.int32)
     height_dim_sizes = tf.constant(feature_widths, tf.int32)
 
-    # ------------------ Pk系数计算，分配到不同levels -------------------#
     # Assigns boxes to the right level.
     box_width = boxes[:, :, 3] - boxes[:, :, 1]
     box_height = boxes[:, :, 2] - boxes[:, :, 0]
+    areas_sqrt = tf.sqrt(
+        tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
 
-    if specified_level:
-        levels = specified_level
-    else:
-        areas_sqrt = tf.sqrt(
-            tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
+    levels = tf.cast(
+        tf.math.floordiv(
+            tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
+            tf.math.log(2.0)) + 4.0,
+        dtype=tf.int32)
+    # Maps levels between [min_level, max_level].
+    levels = tf.minimum(max_level, tf.maximum(levels, min_level))
 
-        levels = tf.cast(
-            tf.math.floordiv(
-                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
-                tf.math.log(2.0)) + 4.0,
-            dtype=tf.int32)
-        # Maps levels between [min_level, max_level].
-        levels = tf.minimum(max_level, tf.maximum(levels, min_level))
-
-    # ------------------ Projects box location and sizes to corresponding feature levels -------------------#
-    # 将 boxes 从原图坐标转化到对应特征图的坐标，期间不存在量化操作
-    # scale_to_level is the strides of each layer of the FPN Pyramid
-    # 每个 level 有对应的步幅，即缩放比例
+    # Projects box location and sizes to corresponding feature levels.
     scale_to_level = tf.cast(
         tf.pow(tf.constant(2.0), tf.cast(levels, tf.float32)),
         dtype=boxes.dtype)
     boxes /= tf.expand_dims(scale_to_level, axis=2)
     box_width /= scale_to_level
     box_height /= scale_to_level
-    # boxes[batch_size, num_boxes, [y0, x0], h, w]
     boxes = tf.concat([boxes[:, :, 0:2],
                        tf.expand_dims(box_height, -1),
                        tf.expand_dims(box_width, -1)], axis=-1)
 
-    # ------------------ Maps levels to [0, max_level-min_level] -------------------#
+    # Maps levels to [0, max_level-min_level].
     levels -= min_level
     level_strides = tf.pow([[2.0]], tf.cast(levels, tf.float32))
-    # 根据相应的 level，设置 boxes 的限制边界
     boundary = tf.cast(
         tf.concat([
             tf.expand_dims(
@@ -253,7 +237,7 @@ def multilevel_crop_and_resize(features,
         ],
                   axis=-1), boxes.dtype)
 
-    # ------------------ Compute grid positions -------------------#
+    # Compute grid positions.
     kernel_y, kernel_x, box_gridy0y1, box_gridx0x1 = _compute_grid_positions(
         boxes, boundary, output_size, sample_offset)
 

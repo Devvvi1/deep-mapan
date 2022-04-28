@@ -41,7 +41,7 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
   def call(self,
            features: Mapping[str, tf.Tensor],
            boxes: tf.Tensor,
-           training: bool = None,
+           training: bool = None,   
            panet: bool = None):
     """Generates ROIs.
 

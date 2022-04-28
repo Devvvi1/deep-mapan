@@ -87,7 +87,7 @@ class DetectionHead(tf.keras.layers.Layer):
 
     if tf.keras.backend.image_data_format() == 'channels_last':
       self._bn_axis = -1
-    else:file:/C:/MUST/Graduation_Project/DLML/Code/github_clone_workspace/deep-mapan/models/official/vision/beta/projects/deepmac_maskrcnn/modeling/heads/instance_heads.py
+    else:
       self._bn_axis = 1
     self._activation = tf_utils.get_activation(activation)
 
@@ -130,7 +130,7 @@ class DetectionHead(tf.keras.layers.Layer):
         'momentum': self._config_dict['norm_momentum'],
         'epsilon': self._config_dict['norm_epsilon'],
     }
-
+    
     print("-------- DetectionHead.build() --------")
     print("input_shape:", input_shape)
     # ------------ conv_head + nomrs -------------#
@@ -146,7 +146,7 @@ class DetectionHead(tf.keras.layers.Layer):
             bn_name = 'detection-conv-head-bn_{}_{}'.format(0, i)
             self._conv_head_norms.append(bn_op(name=bn_name, **bn_kwargs))
     print("num_convs_start:", num_convs_start)
-
+    
     # ------------ convs + nomrs -------------#
     self._convs = []
     self._conv_norms = []
@@ -155,7 +155,7 @@ class DetectionHead(tf.keras.layers.Layer):
       self._convs.append(conv_op(name=conv_name, **conv_kwargs))
       bn_name = 'detection-conv-bn_{}'.format(i)
       self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
-
+    
     # ------------ fcs + nomrs -------------#
     self._fcs = []
     self._fc_norms = []
@@ -171,7 +171,7 @@ class DetectionHead(tf.keras.layers.Layer):
               name=fc_name))
       bn_name = 'detection-fc-bn_{}'.format(i)
       self._fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
-
+    
     # ------------ classifier -------------#
     self._classifier = tf.keras.layers.Dense(
         units=self._config_dict['num_classes'],
@@ -183,7 +183,7 @@ class DetectionHead(tf.keras.layers.Layer):
 
     num_box_outputs = (4 if self._config_dict['class_agnostic_bbox_pred'] else
                        self._config_dict['num_classes'] * 4)
-
+                       
     # ------------ box regressor -------------#
     self._box_regressor = tf.keras.layers.Dense(
         units=num_box_outputs,
@@ -192,7 +192,7 @@ class DetectionHead(tf.keras.layers.Layer):
         kernel_regularizer=self._config_dict['kernel_regularizer'],
         bias_regularizer=self._config_dict['bias_regularizer'],
         name='detection-boxes')
-    print("---------------------------------------")
+
     super(DetectionHead, self).build(input_shape)
 
   def call(self, inputs: Union[tf.Tensor, List[tf.Tensor]], training: bool = None, panet: bool = None):
@@ -427,7 +427,7 @@ class MaskHead(tf.keras.layers.Layer):
 
     super(MaskHead, self).build(input_shape)
 
-  def call(self, inputs: List[tf.Tensor], training: bool = None):
+  def call(self, inputs: List[tf.Tensor], training: bool = None, panet:bool = None):
     """Forward pass of mask branch for the Mask-RCNN model.
 
     Args:

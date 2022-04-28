@@ -13,8 +13,12 @@
 # limitations under the License.
 
 """Quantization helpers."""
+from typing import Any, Dict
+
+import tensorflow as tf
 
 import tensorflow_model_optimization as tfmot
+from official.projects.qat.vision.quantization import configs
 
 
 class LayerQuantizerHelper(object):
@@ -47,3 +51,82 @@ class LayerQuantizerHelper(object):
     for name in self._quantizers:
       self._quantizer_vars[name] = self._quantizers[name].build(
           tensor_shape=None, name=name, layer=self)
+
+
+class NoOpActivation:
+  """No-op activation which simply returns the incoming tensor.
+
+  This activation is required to distinguish between `keras.activations.linear`
+  which does the same thing. The main difference is that NoOpActivation should
+  not have any quantize operation applied to it.
+  """
+
+  def __call__(self, x: tf.Tensor) -> tf.Tensor:
+    return x
+
+  def get_config(self) -> Dict[str, Any]:
+    """Get a config of this object."""
+    return {}
+
+  def __eq__(self, other: Any) -> bool:
+    if not other or not isinstance(other, NoOpActivation):
+      return False
+
+    return True
+
+  def __ne__(self, other: Any) -> bool:
+    return not self.__eq__(other)
+
+
+def quantize_wrapped_layer(cls, quantize_config):
+
+  def constructor(*arg, **kwargs):
+    return tfmot.quantization.keras.QuantizeWrapperV2(
+        cls(*arg, **kwargs), quantize_config)
+
+  return constructor
+
+
+def norm_by_activation(activation, norm_quantized, norm_no_quantized):
+  if activation not in ['relu', 'relu6']:
+    return norm_quantized
+  else:
+    return norm_no_quantized
+
+
+Conv2DQuantized = quantize_wrapped_layer(
+    tf.keras.layers.Conv2D,
+    configs.Default8BitConvQuantizeConfig(['kernel'], ['activation'], False))
+Conv2DOutputQuantized = quantize_wrapped_layer(
+    tf.keras.layers.Conv2D,
+    configs.Default8BitConvQuantizeConfig(['kernel'], ['activation'], True))
+DepthwiseConv2DQuantized = quantize_wrapped_layer(
+    tf.keras.layers.DepthwiseConv2D,
+    configs.Default8BitConvQuantizeConfig(['depthwise_kernel'], ['activation'],
+                                          False))
+DepthwiseConv2DOutputQuantized = quantize_wrapped_layer(
+    tf.keras.layers.DepthwiseConv2D,
+    configs.Default8BitConvQuantizeConfig(['depthwise_kernel'], ['activation'],
+                                          True))
+GlobalAveragePooling2DQuantized = quantize_wrapped_layer(
+    tf.keras.layers.GlobalAveragePooling2D,
+    configs.Default8BitQuantizeConfig([], [], True))
+AveragePooling2DQuantized = quantize_wrapped_layer(
+    tf.keras.layers.AveragePooling2D,
+    configs.Default8BitQuantizeConfig([], [], True))
+ResizingQuantized = quantize_wrapped_layer(
+    tf.keras.layers.Resizing, configs.Default8BitQuantizeConfig([], [], True))
+ConcatenateQuantized = quantize_wrapped_layer(
+    tf.keras.layers.Concatenate, configs.Default8BitQuantizeConfig([], [],
+                                                                   True))
+UpSampling2DQuantized = quantize_wrapped_layer(
+    tf.keras.layers.UpSampling2D, configs.Default8BitQuantizeConfig([], [],
+                                                                    True))
+ReshapeQuantized = quantize_wrapped_layer(
+    tf.keras.layers.Reshape, configs.Default8BitQuantizeConfig([], [], True))
+
+# pylint:disable=g-long-lambda
+BatchNormalizationQuantized = lambda norm_layer: quantize_wrapped_layer(
+    norm_layer, configs.Default8BitOutputQuantizeConfig())
+BatchNormalizationNoQuantized = lambda norm_layer: quantize_wrapped_layer(
+    norm_layer, configs.NoOpQuantizeConfig())

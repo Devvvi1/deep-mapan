@@ -82,10 +82,15 @@ class MaskRCNNTask(base_task.Task):
         input_specs=input_specs,
         model_config=self.task_config.model,
         l2_regularizer=l2_regularizer)
+
+    if self.task_config.freeze_backbone:
+      model.backbone.trainable = False
+
     return model
 
   def initialize(self, model: tf.keras.Model):
     """Loading pretrained checkpoint."""
+
     if not self.task_config.init_checkpoint:
       return
 
@@ -208,11 +213,9 @@ class MaskRCNNTask(base_task.Task):
     frcnn_cls_loss /= num_det_heads
     frcnn_box_loss /= num_det_heads
 
-    # ------------ Mask Loss -------------#
     if params.model.include_mask:
       mask_loss_fn = maskrcnn_losses.MaskrcnnLoss()
       mask_class_targets = outputs['mask_class_targets']
-      # 计算mask_loss前，去掉disallowed id，即训练中不可见类的id，实现的是部分监督task
       if self._task_config.allowed_mask_class_ids is not None:
         # Classes with ID=0 are ignored by mask_loss_fn in loss computation.
         mask_class_targets = zero_out_disallowed_class_ids(

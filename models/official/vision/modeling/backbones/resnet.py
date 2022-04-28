@@ -186,12 +186,11 @@ class ResNet(tf.keras.Model):
       bn_axis = -1
     else:
       bn_axis = 1
-    
-    # ------------ Build ResNet -------------#
+
+    # Build ResNet.
     inputs = tf.keras.Input(shape=input_specs.shape[1:])
 
     stem_depth_multiplier = self._depth_multiplier if scale_stem else 1.0
-    # Default
     if stem_type == 'v0':
       x = layers.Conv2D(
           filters=int(64 * stem_depth_multiplier),
@@ -210,7 +209,6 @@ class ResNet(tf.keras.Model):
           trainable=bn_trainable)(
               x)
       x = tf_utils.get_activation(activation, use_keras_layer=True)(x)
-    # ResNet-D
     elif stem_type == 'v1':
       x = layers.Conv2D(
           filters=int(32 * stem_depth_multiplier),
@@ -265,8 +263,7 @@ class ResNet(tf.keras.Model):
       x = tf_utils.get_activation(activation, use_keras_layer=True)(x)
     else:
       raise ValueError('Stem type {} not supported.'.format(stem_type))
-    
-    # ------------ replace the max pool in stem with a stride-2 conv -------------#
+
     if replace_stem_max_pool:
       x = layers.Conv2D(
           filters=int(64 * self._depth_multiplier),
@@ -287,8 +284,7 @@ class ResNet(tf.keras.Model):
       x = tf_utils.get_activation(activation, use_keras_layer=True)(x)
     else:
       x = layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
-    
-    # ------------ Creates one group of blocks -------------#
+
     endpoints = {}
     for i, spec in enumerate(RESNET_SPECS[model_id]):
       if spec[0] == 'residual':
@@ -297,7 +293,6 @@ class ResNet(tf.keras.Model):
         block_fn = nn_blocks.BottleneckBlock
       else:
         raise ValueError('Block fn `{}` is not supported.'.format(spec[0]))
-        
       x = self._block_group(
           inputs=x,
           filters=int(spec[1] * self._depth_multiplier),

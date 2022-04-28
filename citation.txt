@@ -1,0 +1,8 @@
+@misc{birodkar2021surprising,
+      title={The surprising impact of mask-head architecture on novel class segmentation}, 
+      author={Vighnesh Birodkar and Zhichao Lu and Siyang Li and Vivek Rathod and Jonathan Huang},
+      year={2021},
+      eprint={2104.00613},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}

@@ -15,6 +15,7 @@
 """Training utils."""
 import copy
 import dataclasses
+import inspect
 import json
 import os
 import pprint
@@ -208,6 +209,28 @@ class BestCheckpointExporter:
     return tf.train.latest_checkpoint(self._export_dir)
 
 
+def create_optimizer(task: base_task.Task,
+                     params: config_definitions.ExperimentConfig
+                     ) -> tf.keras.optimizers.Optimizer:
+  """A create optimizer util to be backward compatability with new args."""
+  if 'dp_config' in inspect.signature(task.create_optimizer).parameters:
+    dp_config = None
+    if hasattr(params.task, 'differential_privacy_config'):
+      dp_config = params.task.differential_privacy_config
+    optimizer = task.create_optimizer(
+        params.trainer.optimizer_config, params.runtime,
+        dp_config=dp_config)
+  else:
+    if hasattr(params.task, 'differential_privacy_config'
+              ) and params.task.differential_privacy_config is not None:
+      raise ValueError('Differential privacy config is specified but '
+                       'task.create_optimizer api does not accept it.')
+    optimizer = task.create_optimizer(
+        params.trainer.optimizer_config,
+        params.runtime)
+  return optimizer
+
+
 @gin.configurable
 def create_trainer(params: config_definitions.ExperimentConfig,
                    task: base_task.Task,
@@ -218,8 +241,7 @@ def create_trainer(params: config_definitions.ExperimentConfig,
   """Create trainer."""
   logging.info('Running default trainer.')
   model = task.build_model()
-  optimizer = task.create_optimizer(params.trainer.optimizer_config,
-                                    params.runtime)
+  optimizer = create_optimizer(task, params)
   return trainer_cls(
       params,
       task,
@@ -258,7 +280,7 @@ class ExperimentParser:
 
   def __init__(self, flags_obj):
     self._flags_obj = flags_obj
-  # 构建 Experiment config 的总体流程
+
   def parse(self):
     """Overrall process of constructing Experiment config."""
     params = self.base_experiment()
@@ -267,13 +289,13 @@ class ExperimentParser:
     params = self.parse_data_service(params)
     params = self.parse_params_override(params)
     return params
-  # 从 --experiment 字段中，获取基础的实验配置
+
   def base_experiment(self):
     """Get the base experiment config from --experiment field."""
     if self._flags_obj.experiment is None:
       raise ValueError('The flag --experiment must be specified.')
     return exp_factory.get_exp_config(self._flags_obj.experiment)
-  # 根据 --config_file 字段提供的文件，覆盖 params 的配置
+
   def parse_config_file(self, params):
     """Override the configs of params from the config_file."""
     for config_file in self._flags_obj.config_file or []:
