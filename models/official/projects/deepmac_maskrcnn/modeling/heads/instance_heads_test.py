@@ -31,7 +31,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
       (1, 2, 2, False, False),
       (2, 2, 2, False, True),
   )
-  def test_forward(self, num, upsample_factor, num_convs, use_sync_bn, panet):
+  def ttest_forward(self, num, upsample_factor, num_convs, use_sync_bn, panet):
     print("---------------------------Test forward of Deep Mask Head.{}---------------------------".format(num))
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
@@ -60,7 +60,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         [2, 10, 14 * upsample_factor, 14 * upsample_factor])
     print("------------------------------------------------------------------------------------")
 
-  def test_serialize_deserialize(self):
+  def ttest_serialize_deserialize(self):
     print("---------------------------Test serialization of Deep Mask Head---------------------------")
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
@@ -82,8 +82,8 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
     print("------------------------------------------------------------------------------------------")
   
   @parameterized.parameters(
-      (1, 3, 'default', False),
-      (2, 9, 'default', True),
+      # (1, 3, 'default', False),
+      # (2, 9, 'default', True),
       (3, 9, 'fully-connected', True),
   )
   def test_forward_class_agnostic(self, num, num_classes, convnet_variant, panet):
@@ -110,7 +110,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
       (1, False),
       (2, True),
   )
-  def test_instance_head_hourglass(self, num, panet):
+  def ttest_instance_head_hourglass(self, num, panet):
     print("---------------------------Test forward of HG-20.{}---------------------------".format(num))
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
