@@ -214,7 +214,7 @@ class DetectionHead(tf.keras.layers.Layer):
     roi_features = inputs
     print("-------- Detection Head info --------")
     if panet:
-        print("In instance_heads.py(detection_head), panet is valid!")
+        print("panet:True")
         print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
@@ -232,6 +232,7 @@ class DetectionHead(tf.keras.layers.Layer):
         x = x[0]
         # num = 1
     else:
+        print("panet:False")
         _, num_rois, height, width, filters = roi_features.get_shape().as_list()
         x = tf.reshape(roi_features, [-1, height, width, filters])
         # num = 0

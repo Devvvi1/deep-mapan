@@ -168,7 +168,7 @@ class FPN(tf.keras.Model):
     # add for panet buttom-up path
     # panet = False
     if panet:
-        print("In fpn.py, panet is valid!")
+        print("panet:True")
         # 取出 N3，它是由 P3 直接生成的
         # feats = {str(min_level): feats[str(min_level)]}
         for level in range(min_level+1, backbone_max_level+1):
@@ -201,6 +201,8 @@ class FPN(tf.keras.Model):
                 kernel_regularizer=kernel_regularizer,
                 bias_regularizer=bias_regularizer)(
                 feats[str(level)])
+    else:
+        print("panet:False")
 
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build coarser FPN levels introduced for RetinaNet.

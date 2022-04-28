@@ -213,7 +213,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
     roi_features, roi_classes = inputs
     print("-------- Deep Mask Head info --------")
     if panet:
-        print("In instance_heads.py(DeepMaskHead), panet is valid")
+        print("panet:True")
         print("len(roi_features):", len(roi_features))
         features_shape = tf.shape(roi_features[0])
         batch_size, num_rois, height, width, filters = (
@@ -227,6 +227,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
         print("len(x):", len(x))
     else:
+        print("panet:False")
         features_shape = tf.shape(roi_features)
         batch_size, num_rois, height, width, filters = (
             features_shape[0], features_shape[1], features_shape[2],
@@ -242,7 +243,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
     
     logits_ff = []
     if panet and isinstance(x, List):
-        print("In instance_heads.py(DeepMaskHead), FF is valid")
+        print("FF:True")
         x_ff = x[1]
         x = x[0]
         # x_ff 的 reshape 是否正确
@@ -256,7 +257,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
         x_ff = self._fc_norms(x_ff)
         x_ff = self._activation(x_ff)
         logits_ff = x_ff
+        # 维度为 (2, 10, 28*28)
         print("logits_ff.shape after fcs:", tf.shape(logits_ff))
+    else:
+        print("FF:False")
 
     x = self._deconv(x)
     x = self._deconv_bn(x)
@@ -281,13 +285,15 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # x[1] = x[1].view(-1, 1, cfg.MRCNN.RESOLUTION, cfg.MRCNN.RESOLUTION)
         # x[1] = x[1].repeat(1, cfg.MODEL.NUM_CLASSES, 1, 1)
         # _, _, _, _, num_classes = logits.get_shape().as_list()
-        print("In instance_heads.py(DeepMaskHead), fusion is valid")
         logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
         print("logits_ff.shape before fusion:", tf.shape(logits_ff))
         logits = tf.add(logits, logits_ff)
         print("logits.shape after fusion:", tf.shape(logits))
+        print("fusion:YES")
+    else:
+        print("fusion:NO")
 
     batch_indices = tf.tile(
         tf.expand_dims(tf.range(batch_size), axis=1), [1, num_rois])
@@ -308,30 +314,30 @@ class DeepMaskHead(tf.keras.layers.Layer):
     return mask_outputs
 
   def _build_convnet_variant(self, input_shape):
-  
+    conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
+    bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
     print("-------- DeepMaskHead._build_convnet_variant() --------")
     print("input_shape[0]:", input_shape[0])
     print("len(input_shape[0]):", len(input_shape[0]))
     print("crop_size is:", self._config_dict['crop_size'])
     if isinstance(input_shape[0], List):
         num_levels = len(input_shape[0])
+        filters = input_shape[0][0][-1]
     else:
         num_levels = 1
+        filters = input_shape[0][-1]
+    old_filters = conv_kwargs['filters']
+    set_filters = self._config_dict['num_filters']
     print("num_levels:", num_levels)
+    print("old filters:", old_filters)
+    print("input filters:", filters)
+    print("self._config_dict['num_filters']:", set_filters)
+    if filters != set_filters:
+        conv_kwargs.update({'filters': filters})
 
     variant = self._config_dict['convnet_variant']
     if variant == 'default':
-      conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
-      bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
-
-      old_filters = conv_kwargs['filters']
-      new_filters = input_shape[0][0][-1]
-      ori_filters = self._config_dict['num_filters']
-      print("conv_kwargs['filters']:", old_filters)
-      print("input_shape['filters']:", new_filters)
-      print("self._config_dict['num_filters']:", ori_filters)
-      conv_kwargs.update({'filters': new_filters})
-      
+      print("now conv_kwargs['filters']:", conv_kwargs['filters'])
       # ------------ conv_head + nomrs -------------#
       num_convs_start = 0
       if isinstance(input_shape[0], List):
@@ -354,19 +360,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
     
     elif variant == 'fully-connected':
-        conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
-        bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
-
-        old_filters = conv_kwargs['filters']
-        new_filters = input_shape[0][0][-1]
-        ori_filters = self._config_dict['num_filters']
-        print("old filters:", old_filters)
-        print("old filters:", new_filters)
-        print("self._config_dict['num_filters']:", ori_filters)
-
-        conv_kwargs.update({'filters': new_filters})
-        print("conv_kwargs['filters'] :", conv_kwargs['filters'])
-
+        print("now conv_kwargs['filters']:", conv_kwargs['filters'])
         # ------------ conv_head + nomrs -------------#
         self._conv_head = []
         self._conv_head_norms = []
@@ -393,7 +387,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         bn_name = 'mask-conv-bn-fc_{}'.format(0)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
-        conv_kwargs.update({'filters': new_filters/2})
+        conv_kwargs.update({'filters': filters/2})
         print("conv_kwargs['filters'] update for conv fc:", conv_kwargs['filters'])
 
         conv_name = 'mask-conv-fc_{}'.format(1)
@@ -401,7 +395,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         bn_name = 'mask-conv-bn-fc_{}'.format(1)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
-        conv_kwargs.update({'filters': new_filters})
+        conv_kwargs.update({'filters': filters})
         print("conv_kwargs['filters'] after conv fc:", conv_kwargs['filters'])
 
         # ------------ fc + nomrs -------------#
@@ -419,18 +413,19 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
     elif variant == 'hourglass20':
       logging.info('Using hourglass 20 network.')
+      # filters = self._config_dict['num_filters']
       self._hourglass = hourglass_network.hourglass_20(
-          self._config_dict['num_filters'], initial_downsample=False, num_levels=num_levels)
+          filters, initial_downsample=False, num_levels=num_levels)
 
     elif variant == 'hourglass52':
       logging.info('Using hourglass 52 network.')
       self._hourglass = hourglass_network.hourglass_52(
-          self._config_dict['num_filters'], initial_downsample=False, num_levels=num_levels)
+          filters, initial_downsample=False, num_levels=num_levels)
 
     elif variant == 'hourglass100':
       logging.info('Using hourglass 100 network.')
       self._hourglass = hourglass_network.hourglass_100(
-          self._config_dict['num_filters'], initial_downsample=False, num_levels=num_levels)
+          filters, initial_downsample=False, num_levels=num_levels)
 
     else:
       raise ValueError('Unknown ConvNet variant - {}'.format(variant))

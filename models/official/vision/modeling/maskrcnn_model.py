@@ -415,7 +415,7 @@ class MaskRCNNModel(tf.keras.Model):
 
   def _features_to_mask_outputs(self, features, rois, roi_classes, panet):
     # Mask RoI align.
-    mask_roi_features = self.mask_roi_aligner(features, rois, panet)
+    mask_roi_features = self.mask_roi_aligner(features, rois, panet=panet)
 
     # Mask head.
     raw_masks = self.mask_head([mask_roi_features, roi_classes], panet=panet)
