@@ -369,7 +369,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
         bn_name = 'mask-conv-bn-fc_{}'.format(0)
         self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
-        conv_kwargs.update({'filters': self._config_dict['num_filters']/2})
+        print("self._config_dict['num_filters']:", self._config_dict['num_filters'])
+        filters = input_shape[0][-1]
+        print("filters:", filters)
+        conv_kwargs.update({'filters': 16/2})
         conv_name = 'mask-conv-fc_{}'.format(1)
         self._conv_fc.append(conv_op(name=conv_name, **conv_kwargs))
         bn_name = 'mask-conv-bn-fc_{}'.format(1)
@@ -377,7 +380,6 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         # ------------ fc + nomrs -------------#
         fc_name = 'mask-fc_{}'.format(0)
-        print("self._config_dict['num_filters']:", self._config_dict['num_filters'])
         print("self._config_dict['crop_size']:", self._config_dict['crop_size'])
         self._fcs = tf.keras.layers.Dense(
                     units=(self._config_dict['crop_size']*self._config_dict['upsample_factor'])**2,
