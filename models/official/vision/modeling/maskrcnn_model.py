@@ -297,7 +297,8 @@ class MaskRCNNModel(tf.keras.Model):
       matched_gt_boxes: tf.Tensor,
       matched_gt_classes: tf.Tensor,
       gt_masks: tf.Tensor,
-      training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+      training: Optional[bool] = None,
+      panet: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
     """Implementation of Mask-RCNN mask prediction logic."""
 
     model_outputs = dict(model_box_outputs)
@@ -316,7 +317,7 @@ class MaskRCNNModel(tf.keras.Model):
       roi_classes = model_outputs['detection_classes']
 
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, current_rois, roi_classes, False)
+        features, current_rois, roi_classes, panet)
 
     if training:
       model_outputs.update({

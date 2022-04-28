@@ -192,6 +192,7 @@ class DetectionHead(tf.keras.layers.Layer):
         kernel_regularizer=self._config_dict['kernel_regularizer'],
         bias_regularizer=self._config_dict['bias_regularizer'],
         name='detection-boxes')
+    print("---------------------------------------")
 
     super(DetectionHead, self).build(input_shape)
 
@@ -211,9 +212,9 @@ class DetectionHead(tf.keras.layers.Layer):
         predictions.
     """
     roi_features = inputs
+    print("-------- Detection Head info --------")
     if panet:
         print("In instance_heads.py(detection_head), panet is valid!")
-        print("-------- Detection Head info --------")
         print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []

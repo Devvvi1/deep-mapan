@@ -53,7 +53,7 @@ class DetectionHeadTest(parameterized.TestCase, tf.test.TestCase):
         roi_features = []
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 128, 128, 16))
-    scores, boxes = detection_head(roi_features)
+    scores, boxes = detection_head(roi_features, panet=panet)
     print("scores.shape:", scores.numpy().shape)
     print("boxes.shape:", boxes.numpy().shape)
     self.assertAllEqual(scores.numpy().shape, [2, 10, 3])

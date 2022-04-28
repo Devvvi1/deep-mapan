@@ -223,7 +223,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     
     # mask_logits 就是 mask_head 生成的 raw_masks
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, roi_aligner_boxes, mask_head_classes)
+        features, roi_aligner_boxes, mask_head_classes, panet)
 
     if training:
       model_outputs.update({

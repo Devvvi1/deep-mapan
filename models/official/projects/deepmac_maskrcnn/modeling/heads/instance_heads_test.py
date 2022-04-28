@@ -54,7 +54,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 14, 14, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
+    masks = mask_head([roi_features, roi_classes], panet=panet)
     self.assertAllEqual(
         masks.numpy().shape,
         [2, 10, 14 * upsample_factor, 14 * upsample_factor])
@@ -101,7 +101,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 14, 14, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
+    masks = mask_head([roi_features, roi_classes], panet=panet)
     print("masks.shape:", masks.numpy().shape)
     self.assertAllEqual(masks.numpy().shape, [2, 10, 28, 28])
     print("------------------------------------------------------------------------------------")
@@ -128,7 +128,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 16, 16, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
+    masks = mask_head([roi_features, roi_classes], panet=panet)
     print("masks.shape:", masks.numpy().shape)
     self.assertAllEqual(masks.numpy().shape, [2, 10, 32, 32])
     print("---------------------------------------------------------------------------")

@@ -211,9 +211,9 @@ class DeepMaskHead(tf.keras.layers.Layer):
          roi_width * upsample_factor], representing the mask predictions.
     """
     roi_features, roi_classes = inputs
+    print("-------- Deep Mask Head info --------")
     if panet:
         print("In instance_heads.py(DeepMaskHead), panet is valid")
-        print("-------- Deep Mask Head info --------")
         print("len(roi_features):", len(roi_features))
         features_shape = tf.shape(roi_features[0])
         batch_size, num_rois, height, width, filters = (
@@ -298,6 +298,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         axis=2)
     mask_outputs = tf.gather_nd(
         tf.transpose(logits, [0, 1, 4, 2, 3]), gather_indices)
+    print("-------------------------------------")
     return mask_outputs
 
   def _build_convnet_variant(self, input_shape: Union[tf.TensorShape, List[tf.TensorShape]]):
@@ -305,7 +306,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
     print("-------- DeepMaskHead._build_convnet_variant() --------")
     print("input_shape:", input_shape)
     print("len(input_shape):", len(input_shape))
-    print("crop_size is:",self._config_dict['crop_size'])
+    print("crop_size is:", self._config_dict['crop_size'])
     if isinstance(input_shape, List):
         num_levels = len(input_shape)
     else:
