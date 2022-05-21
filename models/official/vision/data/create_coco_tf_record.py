@@ -31,6 +31,7 @@ import collections
 import json
 import logging
 import os
+import sys
 
 from absl import app  # pylint:disable=unused-import
 from absl import flags
@@ -40,6 +41,7 @@ from pycocotools import mask
 import tensorflow as tf
 
 import multiprocessing as mp
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from official.vision.data import tfrecord_lib
 
 

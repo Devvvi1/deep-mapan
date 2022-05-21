@@ -1,0 +1,23 @@
+$ export CONFIG=./official/projects/deepmac_maskrcnn/configs/experiments/deep_mask_head_rcnn_voc_r50.yaml
+
+$ export MODEL_DIR="gs://deep-mapan-train/checkpoint/mrcnn"
+$ export ANNOTAION_FILE="gs://deep-mapan-train/tf_data/coco/instances_val2017.json"
+
+$ export TRAIN_DATA="gs://deep-mapan-train/tf_data/coco/train*"
+$ export EVAL_DATA="gs://deep-mapan-train/tf_data/coco/val*"
+
+$ export TPU_NAME=tputest
+
+$ export OVERRIDES="task.validation_data.input_path=${EVAL_DATA},\
+task.train_data.input_path=${TRAIN_DATA},\
+task.annotation_file=${ANNOTAION_FILE},\
+runtime.distribution_strategy=tpu"
+
+$ python3 -m official.projects.deepmac_maskrcnn.train \
+  --logtostderr \
+  --mode=train_and_eval \
+  --experiment=deep_mask_head_rcnn_resnetfpn_coco \
+  --model_dir=$MODEL_DIR \
+  --config_file=$CONFIG \
+  --params_override=$OVERRIDES\
+  --tpu=$TPU_NAME

@@ -1,4 +1,5 @@
 export PROJECT_ID=phonic-envoy-344212
+export PROJECT_ID=deep-mapan
 
 gcloud config set project ${PROJECT_ID}
 
@@ -15,10 +16,9 @@ gcloud alpha compute tpus tpu-vm create tputest \
 
 gcloud alpha compute tpus tpu-vm ssh tputest --zone=$ZONE
 
+# my code 
 '''
-my code 
-
-rm -r deep-mapan/
+# rm -r deep-mapan/
 
 git clone https://github.com/Devvvi1/deep-mapan.git
 cd deep-mapan/models
@@ -29,6 +29,7 @@ python3 -m official.vision.modeling.heads.instance_heads_test
 
 python3 -m official.projects.deepmac_maskrcnn.modeling.heads.instance_heads_test
 python3 -m official.projects.deepmac_maskrcnn.modeling.maskrcnn_model_test
+
 
 '''
 
