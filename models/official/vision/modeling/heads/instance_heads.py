@@ -84,7 +84,7 @@ class DetectionHead(tf.keras.layers.Layer):
         'kernel_regularizer': kernel_regularizer,
         'bias_regularizer': bias_regularizer,
     }
-    
+
     if tf.keras.backend.image_data_format() == 'channels_last':
       self._bn_axis = -1
     else:

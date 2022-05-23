@@ -55,7 +55,8 @@ def main(_):
       task=task,
       mode=FLAGS.mode,
       params=params,
-      model_dir=model_dir)
+      model_dir=model_dir,
+      debug=True)
 
   train_utils.save_gin_config(FLAGS.mode, model_dir)
 

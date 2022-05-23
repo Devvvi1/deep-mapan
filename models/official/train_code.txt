@@ -21,3 +21,4 @@ $ python3 -m official.projects.deepmac_maskrcnn.train \
   --config_file=$CONFIG \
   --params_override=$OVERRIDES\
   --tpu=$TPU_NAME
+  --zone=us-standar
