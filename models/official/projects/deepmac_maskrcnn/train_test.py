@@ -34,6 +34,7 @@ def main(_):
     # Pure eval modes do not output yaml files. Otherwise continuous eval job
     # may race against the train job for writing the same file.
     train_utils.serialize_config(params, model_dir)
+  print("----------------- train_utils.serialize_config() -----------------")
 
   # Sets mixed_precision policy. Using 'mixed_float16' or 'mixed_bfloat16'
   # can have significant impact on model speeds by utilizing float16 in case of
@@ -41,14 +42,19 @@ def main(_):
   # dtype is float16
   if params.runtime.mixed_precision_dtype:
     performance.set_mixed_precision_policy(params.runtime.mixed_precision_dtype)
+  print("----------------- params.runtime.mixed_precision_dtype -----------------")
+
   distribution_strategy = distribute_utils.get_distribution_strategy(
       distribution_strategy=params.runtime.distribution_strategy,
       all_reduce_alg=params.runtime.all_reduce_alg,
       num_gpus=params.runtime.num_gpus,
       tpu_address=params.runtime.tpu)
+  print("----------------- distribute_utils.get_distribution_strategy() -----------------")
+
   with distribution_strategy.scope():
     task = task_factory.get_task(params.task, logging_dir=model_dir)
     logging.info('Training with task %s', task)
+  print("----------------- task -----------------")
 
   train_lib.run_experiment(
       distribution_strategy=distribution_strategy,
@@ -57,6 +63,7 @@ def main(_):
       params=params,
       model_dir=model_dir,
       debug=True)
+  print("----------------- train_lib.run_experiment() -----------------")
 
   train_utils.save_gin_config(FLAGS.mode, model_dir)
 

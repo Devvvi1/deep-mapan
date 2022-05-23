@@ -114,7 +114,7 @@ def run_experiment(
       eval_actions=actions.get_eval_actions(params, trainer, model_dir))
 
   if debug:
-      print("This is a debug")
+      print("This is a debug!")
       return trainer.model, {}
 
   # ------------ 按设置好的模式运行 -------------#
