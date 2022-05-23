@@ -141,6 +141,7 @@ def write_tf_record_dataset(output_path, annotation_iterator,
     num_skipped: The total number of skipped annotations.
   """
 
+  print("output_path:", output_path)
   writers = [
       tf.io.TFRecordWriter(
           output_path + '-%05d-of-%05d.tfrecord' % (i, num_shards))

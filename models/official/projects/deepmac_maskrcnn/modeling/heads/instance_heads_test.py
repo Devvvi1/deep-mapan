@@ -31,7 +31,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
       (1, 2, 2, False, False),
       (2, 2, 2, False, True),
   )
-  def ttest_forward(self, num, upsample_factor, num_convs, use_sync_bn, panet):
+  def ttest_forward(self, num, upsample_factor, num_convs, use_sync_bn, afp):
     print("---------------------------Test forward of Deep Mask Head.{}---------------------------".format(num))
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
@@ -47,14 +47,14 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         bias_regularizer=None,
     )
     # roi_features = np.random.rand(2, 10, 14, 14, 16)
-    if not panet:
+    if not afp:
         roi_features = np.random.rand(2, 10, 14, 14, 16)
     else:
         roi_features = []
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 14, 14, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes], panet=panet)
+    masks = mask_head([roi_features, roi_classes], afp=afp)
     self.assertAllEqual(
         masks.numpy().shape,
         [2, 10, 14 * upsample_factor, 14 * upsample_factor])
@@ -86,7 +86,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
       (2, 9, 'default', True),
       (3, 9, 'fully-connected', True),
   )
-  def test_forward_class_agnostic(self, num, num_classes, convnet_variant, panet):
+  def test_forward_class_agnostic(self, num, num_classes, convnet_variant, afp):
     print("\n---------------------------Test forward of class agnostic.{}---------------------------\n".format(num))
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=num_classes,
@@ -94,14 +94,14 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         convnet_variant=convnet_variant
     )
     # roi_features = np.random.rand(2, 10, 14, 14, 16)
-    if not panet:
+    if not afp:
         roi_features = np.random.rand(2, 10, 14, 14, 16)
     else:
         roi_features = []
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 14, 14, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes], panet=panet)
+    masks = mask_head([roi_features, roi_classes], afp=afp)
     print("masks.shape:", masks.numpy().shape)
     self.assertAllEqual(masks.numpy().shape, [2, 10, 28, 28])
     print("------------------------------------------------------------------------------------")
@@ -110,7 +110,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
       (1, False),
       (2, True),
   )
-  def ttest_instance_head_hourglass(self, num, panet):
+  def ttest_instance_head_hourglass(self, num, afp):
     print("---------------------------Test forward of HG-20.{}---------------------------".format(num))
     mask_head = deep_instance_heads.DeepMaskHead(
         num_classes=3,
@@ -121,14 +121,14 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         crop_size=16
     )
     # roi_features = np.random.rand(2, 10, 16, 16, 16)
-    if not panet:
+    if not afp:
         roi_features = np.random.rand(2, 10, 16, 16, 16)
     else:
         roi_features = []
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 16, 16, 16))
     roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes], panet=panet)
+    masks = mask_head([roi_features, roi_classes], afp=afp)
     print("masks.shape:", masks.numpy().shape)
     self.assertAllEqual(masks.numpy().shape, [2, 10, 32, 32])
     print("---------------------------------------------------------------------------")

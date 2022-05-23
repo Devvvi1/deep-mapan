@@ -41,7 +41,8 @@ def run_experiment(
     run_post_eval: bool = False,
     save_summary: bool = True,
     trainer: Optional[base_trainer.Trainer] = None,
-    controller_cls=orbit.Controller
+    controller_cls=orbit.Controller,
+    debug: bool = False,
 ) -> Tuple[tf.keras.Model, Mapping[str, Any]]:
   """Runs train/eval configured by the experiment params.
 
@@ -68,7 +69,9 @@ def run_experiment(
   """
 
   with distribution_strategy.scope():
+    # ------------ 创建训练器 -------------#
     if not trainer:
+      # 主要是建立模型和优化器，即task.build_model()和task.create_optimizer()
       trainer = train_utils.create_trainer(
           params,
           task,
@@ -90,6 +93,7 @@ def run_experiment(
   else:
     checkpoint_manager = None
 
+  # ------------ 创建控制器去管理train和eval -------------#
   controller = controller_cls(
       strategy=distribution_strategy,
       trainer=trainer if 'train' in mode else None,
@@ -103,10 +107,16 @@ def run_experiment(
       (save_summary) else None,
       summary_interval=params.trainer.summary_interval if
       (save_summary) else None,
+      # Some additional customization can be achieved by supplying `train_actions` or
+      #   `eval_actions` when constructing the `Controller`
       train_actions=actions.get_train_actions(
           params, trainer, model_dir, checkpoint_manager=checkpoint_manager),
       eval_actions=actions.get_eval_actions(params, trainer, model_dir))
 
+  if debug:
+      return trainer.model, {}
+
+  # ------------ 按设置好的模式运行 -------------#
   logging.info('Starts to execute mode: %s', mode)
   with distribution_strategy.scope():
     if mode == 'train':
@@ -132,16 +142,19 @@ def run_experiment(
     else:
       raise NotImplementedError('The mode is not implemented: %s' % mode)
 
+  # 计算参数的数量
   num_params = train_utils.try_count_params(trainer.model)
   if num_params is not None:
     logging.info('Number of trainable params in model: %f Millions.',
                  num_params / 10.**6)
 
+  # 计算模型的FLOPs
   flops = train_utils.try_count_flops(trainer.model)
   if flops is not None:
     logging.info('FLOPs (multi-adds) in model: %f Billions.',
                  flops / 10.**9 / 2)
 
+  # 训练后是否运行一次后评估
   if run_post_eval:
     with distribution_strategy.scope():
       return trainer.model, trainer.evaluate(

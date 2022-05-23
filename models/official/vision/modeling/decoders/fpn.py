@@ -41,7 +41,7 @@ class FPN(tf.keras.Model):
       input_specs: Mapping[str, tf.TensorShape],
       min_level: int = 3,
       max_level: int = 7,
-      panet: bool = False,
+      bpa: bool = False,
       num_filters: int = 256,
       fusion_type: str = 'sum',
       use_separable_conv: bool = False,
@@ -80,7 +80,7 @@ class FPN(tf.keras.Model):
         'input_specs': input_specs,
         'min_level': min_level,
         'max_level': max_level,
-        'panet': panet,
+        'bpa': bpa,
         'num_filters': num_filters,
         'fusion_type': fusion_type,
         'use_separable_conv': use_separable_conv,
@@ -165,10 +165,10 @@ class FPN(tf.keras.Model):
           bias_regularizer=bias_regularizer)(
               feats[str(level)])
     
-    # add for panet buttom-up path
-    # panet = False
-    if panet:
-        print("panet:True")
+    # add for bpa buttom-up path
+    # bpa = False
+    if bpa:
+        print("bpa:True")
         # 取出 N3，它是由 P3 直接生成的
         # feats = {str(min_level): feats[str(min_level)]}
         for level in range(min_level+1, backbone_max_level+1):
@@ -202,7 +202,7 @@ class FPN(tf.keras.Model):
                 bias_regularizer=bias_regularizer)(
                 feats[str(level)])
     else:
-        print("panet:False")
+        print("bpa:False")
 
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build coarser FPN levels introduced for RetinaNet.
@@ -296,7 +296,7 @@ def build_fpn_decoder(
       input_specs=input_specs,
       min_level=model_config.min_level,
       max_level=model_config.max_level,
-      pant=model_config.panet,
+      pant=model_config.bpa,
       num_filters=decoder_cfg.num_filters,
       fusion_type=decoder_cfg.fusion_type,
       use_separable_conv=decoder_cfg.use_separable_conv,

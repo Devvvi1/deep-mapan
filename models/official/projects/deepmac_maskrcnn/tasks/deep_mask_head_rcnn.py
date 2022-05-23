@@ -37,6 +37,11 @@ def build_maskrcnn(input_specs: tf.keras.layers.InputSpec,
                    model_config: deep_mask_head_rcnn_config.DeepMaskHeadRCNN,
                    l2_regularizer: tf.keras.regularizers.Regularizer = None):  # pytype: disable=annotation-type-mismatch  # typed-keras
   """Builds Mask R-CNN model."""
+  print("\n-------- build deep mask head mrcnn info --------")
+  print("model.bpa:", model_config.bpa)
+  print("model.afp:", model_config.afp)
+  print("-------------------------------------------------\n")
+
   norm_activation_config = model_config.norm_activation
   backbone = backbones.factory.build_backbone(
       input_specs=input_specs,
@@ -172,6 +177,10 @@ class DeepMaskHeadRCNNTask(maskrcnn.MaskRCNNTask):
 
   def build_model(self):
     """Build Mask R-CNN model."""
+    print("\n-------- DeepMaskHeadRCNNTask info --------")
+    print("self.task_config.model.bpa:", self.task_config.model.bpa)
+    print("self.task_config.model.afp:", self.task_config.model.afp)
+    print("-------------------------------------------\n")
 
     input_specs = tf.keras.layers.InputSpec(
         shape=[None] + self.task_config.model.input_size)

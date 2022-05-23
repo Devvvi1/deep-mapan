@@ -161,7 +161,8 @@ class MaskRCNN(hyperparams.Config):
   input_size: List[int] = dataclasses.field(default_factory=list)
   min_level: int = 2
   max_level: int = 6
-  panet: bool = False
+  bpa: bool = False
+  afp: bool = False
   anchor: Anchor = Anchor()
   include_mask: bool = True
   backbone: backbones.Backbone = backbones.Backbone(

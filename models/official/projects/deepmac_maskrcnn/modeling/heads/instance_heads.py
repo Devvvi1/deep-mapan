@@ -194,7 +194,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
     super(DeepMaskHead, self).build(input_shape)
 
-  def call(self, inputs, training=None, panet: bool = None):
+  def call(self, inputs, training=None, afp: bool = None):
     """Forward pass of mask branch for the Mask-RCNN model.
 
     Args:
@@ -212,8 +212,8 @@ class DeepMaskHead(tf.keras.layers.Layer):
     """
     roi_features, roi_classes = inputs
     print("-------- Deep Mask Head info --------")
-    if panet:
-        print("panet:True")
+    if afp:
+        print("afp:True")
         print("len(roi_features):", len(roi_features))
         features_shape = tf.shape(roi_features[0])
         batch_size, num_rois, height, width, filters = (
@@ -227,7 +227,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
         print("len(x):", len(x))
     else:
-        print("panet:False")
+        print("afp:False")
         features_shape = tf.shape(roi_features)
         batch_size, num_rois, height, width, filters = (
             features_shape[0], features_shape[1], features_shape[2],
@@ -239,10 +239,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
     print("height & width of roi_features:", height, width)
     print("filters:", filters)
     
-    x = self._call_convnet_variant(x, panet=panet)
+    x = self._call_convnet_variant(x, afp=afp)
     
     logits_ff = []
-    if panet and isinstance(x, List):
+    if afp and isinstance(x, List):
         print("FF:True")
         x_ff = x[1]
         x = x[0]
@@ -280,7 +280,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
            self._config_dict['num_classes']])
     print("logits.shape before fusion:", tf.shape(logits))
     
-    if isinstance(logits_ff, tf.Tensor) and panet:
+    if isinstance(logits_ff, tf.Tensor) and afp:
         # 怎么将 logits_ff 先 reshape 成 1类，再复制为 num_class 类，最后再相加融合？
         # x[1] = x[1].view(-1, 1, cfg.MRCNN.RESOLUTION, cfg.MRCNN.RESOLUTION)
         # x[1] = x[1].repeat(1, cfg.MODEL.NUM_CLASSES, 1, 1)
@@ -431,8 +431,8 @@ class DeepMaskHead(tf.keras.layers.Layer):
       raise ValueError('Unknown ConvNet variant - {}'.format(variant))
     print("-------------------------------------------------------")
 
-  def _call_AFP_convnet(self, x, panet):
-      if panet:
+  def _call_AFP_convnet(self, x, afp):
+      if afp:
           # ------------ Conv_head for each level -------------#
           print("In AFP, len(x) is:", len(x))
           for i in range(len(x)):
@@ -445,18 +445,18 @@ class DeepMaskHead(tf.keras.layers.Layer):
           x = x[0]
       return x
 
-  def _call_convnet_variant(self, x, panet: bool = None):
+  def _call_convnet_variant(self, x, afp: bool = None):
 
     variant = self._config_dict['convnet_variant']
     if variant == 'default':
-      x = self._call_AFP_convnet(x, panet)
+      x = self._call_AFP_convnet(x, afp)
       for conv, bn in zip(self._convs, self._conv_norms):
         x = conv(x)
         x = bn(x)
         x = self._activation(x)
       return x
     elif variant == 'fully-connected':
-        x = self._call_AFP_convnet(x, panet)
+        x = self._call_AFP_convnet(x, afp)
         y = []
         # con2 - conv4
         for conv, bn in zip(self._convs, self._conv_norms):
@@ -476,11 +476,11 @@ class DeepMaskHead(tf.keras.layers.Layer):
         print("x_ff.shape after conv fc:", tf.shape(x_ff))
         return [x_fcn, x_ff]
     elif variant == 'hourglass20':
-      return self._hourglass(x, panet)[-1]
+      return self._hourglass(x, afp)[-1]
     elif variant == 'hourglass52':
-      return self._hourglass(x, panet)[-1]
+      return self._hourglass(x, afp)[-1]
     elif variant == 'hourglass100':
-      return self._hourglass(x, panet)[-1]
+      return self._hourglass(x, afp)[-1]
     else:
       raise ValueError('Unknown ConvNet variant - {}'.format(variant))
 

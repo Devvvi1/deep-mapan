@@ -30,7 +30,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
       (2, 256, 3, 7, False, True, 'concat'),
   )
   # 主要测试每个 level 的特征图的 shape
-  def test_network_creation(self, num, input_size, min_level, max_level, panet,
+  def test_network_creation(self, num, input_size, min_level, max_level, bpa,
                             use_separable_conv, fusion_type):
     """Test creation of FPN."""
     print("\n---------------------------Test creation of FPN.{}---------------------------".format(num))
@@ -43,7 +43,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         input_specs=backbone.output_specs,
         min_level=min_level,
         max_level=max_level,
-        panet=panet,
+        bpa=bpa,
         fusion_type=fusion_type,
         use_separable_conv=use_separable_conv)
 
@@ -95,7 +95,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         input_specs=resnet.ResNet(model_id=50).output_specs,
         min_level=3,
         max_level=7,
-        panet=False,
+        bpa=False,
         num_filters=256,
         fusion_type='sum',
         use_separable_conv=False,

@@ -188,8 +188,8 @@ class InputDownsampleBlock(tf.keras.layers.Layer):
     self.residual_block = ResidualBlock(
         out_channels=out_channels_residual_block, stride=2, skip_conv=True)
 
-  def call(self, inputs, panet):
-    if panet:
+  def call(self, inputs, afp):
+    if afp:
         x = inputs
     else:
         x = [inputs]
@@ -232,8 +232,8 @@ class InputConvBlock(tf.keras.layers.Layer):
     self.residual_block = ResidualBlock(
         out_channels=out_channels_residual_block, stride=1, skip_conv=True)
 
-  def call(self, inputs, panet):
-    if panet:
+  def call(self, inputs, afp):
+    if afp:
         x = inputs
     else:
         x = [inputs]
@@ -483,12 +483,12 @@ class HourglassNetwork(tf.keras.Model):
 
     self.intermediate_relu = tf.keras.layers.ReLU()
 
-  def call(self, inputs, panet):
+  def call(self, inputs, afp):
 
     if self.initial_downsample:
-      inputs = self.downsample_input(inputs, panet)
+      inputs = self.downsample_input(inputs, afp)
     else:
-      inputs = self.conv_input(inputs, panet)
+      inputs = self.conv_input(inputs, afp)
 
     outputs = []
 

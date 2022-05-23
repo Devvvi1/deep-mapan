@@ -343,6 +343,7 @@ class MaskRCNNTask(base_task.Task):
     images, labels = inputs
     num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
     with tf.GradientTape() as tape:
+      # 执行call()
       outputs = model(
           images,
           image_shape=labels['image_info'][:, 1, :],
@@ -351,7 +352,8 @@ class MaskRCNNTask(base_task.Task):
           gt_classes=labels['gt_classes'],
           gt_masks=(labels['gt_masks'] if self.task_config.model.include_mask
                     else None),
-          training=True)
+          training=True,
+          afp=self.task_config.model.afp)
       outputs = tf.nest.map_structure(
           lambda x: tf.cast(x, tf.float32), outputs)
 

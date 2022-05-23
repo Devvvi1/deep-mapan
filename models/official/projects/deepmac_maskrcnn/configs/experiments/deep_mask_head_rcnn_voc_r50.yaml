@@ -7,6 +7,8 @@ task:
     mask_head:
       class_agnostic: true
     use_gt_boxes_for_masks: true
+    bpa: true
+    afp: true
     backbone:
       type: 'resnet'
       resnet:

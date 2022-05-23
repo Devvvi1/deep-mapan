@@ -1,6 +1,6 @@
-export STORAGE_BUCKET=gs://deep-mapan-train
+export PYTHONPATH=$(pwd)
+export STORAGE_BUCKET="gs://deep-mapan-train"
 export DATA_DIR=${STORAGE_BUCKET}/coco2017
-export OUTPUT_DIR=${STORAGE_BUCKET}/tf_data/coco
 
 # 需要执行三次create_coco_tf_record.py，每次train，val，test需要配置的路径都不一样
 
@@ -9,26 +9,29 @@ export TRAIN_IMAGE_DIR=${DATA_DIR}/image/train2017
 export TRAIN_IMAGE_INFO_FILE=${DATA_DIR}/instances_annotations/instances_train2017.json
 export TRAIN_ANNOTATIONS_FILE=${DATA_DIR}/instances_annotations/instances_train2017.json
 export CAPTION_ANNOTATIONS_FILE=${DATA_DIR}/caption_annotations/captions_train2017.json
-export FILE_PREFIX=train2017
+export OUTPUT_PATH=${STORAGE_BUCKET}/tf_data/coco/train2017/train2017
 
 # 处理val2017
 export TRAIN_IMAGE_DIR=${DATA_DIR}/image/val2017
 export TRAIN_IMAGE_INFO_FILE=${DATA_DIR}/instances_annotations/instances_val2017.json
 export TRAIN_ANNOTATIONS_FILE=${DATA_DIR}/instances_annotations/instances_val2017.json
 export CAPTION_ANNOTATIONS_FILE=${DATA_DIR}/caption_annotations/captions_val2017.json
-export FILE_PREFIX=val2017
+export OUTPUT_PATH=${STORAGE_BUCKET}/tf_data/coco/val2017/val2017
 
 # 处理test2017
 export TRAIN_IMAGE_DIR=${DATA_DIR}/image/test2017
 export TRAIN_IMAGE_INFO_FILE=${DATA_DIR}/image_info/image_info_test-dev2017.json
 export TRAIN_ANNOTATIONS_FILE=${DATA_DIR}/image_info/image_info_test-dev2017.json
 export CAPTION_ANNOTATIONS_FILE=${DATA_DIR}/image_info/image_info_test-dev2017.json
-export FILE_PREFIX=test2017
+export OUTPUT_PATH=${STORAGE_BUCKET}/tf_data/coco/test2017/test2017
 
-python official/vision/data/create_coco_tf_record.py --logtostderr \
+# export OUTPUT_DIR=${STORAGE_BUCKET}/tf_data/coco
+# export FILE_PREFIX=train2017
+
+python3 official/vision/data/create_coco_tf_record.py --logtostderr \
       --image_dir="${TRAIN_IMAGE_DIR}" \
       --image_info_file="${TRAIN_IMAGE_INFO_FILE}" \
       --object_annotations_file="${TRAIN_ANNOTATIONS_FILE}" \
       --caption_annotations_file="${CAPTION_ANNOTATIONS_FILE}" \
-      --output_file_prefix="${OUTPUT_DIR/FILE_PREFIX}" \
+      --output_file_prefix="${OUTPUT_PATH}" \
       --num_shards=100

@@ -84,12 +84,13 @@ class DetectionHead(tf.keras.layers.Layer):
         'kernel_regularizer': kernel_regularizer,
         'bias_regularizer': bias_regularizer,
     }
-
+    
     if tf.keras.backend.image_data_format() == 'channels_last':
       self._bn_axis = -1
     else:
       self._bn_axis = 1
     self._activation = tf_utils.get_activation(activation)
+    print("-------- DetectionHead.__init__() --------")
 
   def build(self, input_shape: Union[tf.TensorShape, List[tf.TensorShape]]):
     """Creates the variables of the head."""
@@ -196,7 +197,7 @@ class DetectionHead(tf.keras.layers.Layer):
 
     super(DetectionHead, self).build(input_shape)
 
-  def call(self, inputs: Union[tf.Tensor, List[tf.Tensor]], training: bool = None, panet: bool = None):
+  def call(self, inputs: Union[tf.Tensor, List[tf.Tensor]], training: bool = None, afp: bool = None):
     """Forward pass of box and class branches for the Mask-RCNN model.
 
     Args:
@@ -213,8 +214,8 @@ class DetectionHead(tf.keras.layers.Layer):
     """
     roi_features = inputs
     print("-------- Detection Head info --------")
-    if panet:
-        print("panet:True")
+    if afp:
+        print("afp:True")
         print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
@@ -232,7 +233,7 @@ class DetectionHead(tf.keras.layers.Layer):
         x = x[0]
         # num = 1
     else:
-        print("panet:False")
+        print("afp:False")
         _, num_rois, height, width, filters = roi_features.get_shape().as_list()
         x = tf.reshape(roi_features, [-1, height, width, filters])
         # num = 0
@@ -429,7 +430,7 @@ class MaskHead(tf.keras.layers.Layer):
 
     super(MaskHead, self).build(input_shape)
 
-  def call(self, inputs: List[tf.Tensor], training: bool = None, panet:bool = None):
+  def call(self, inputs: List[tf.Tensor], training: bool = None, afp:bool = None):
     """Forward pass of mask branch for the Mask-RCNN model.
 
     Args:

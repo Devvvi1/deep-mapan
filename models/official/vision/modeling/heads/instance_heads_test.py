@@ -31,7 +31,7 @@ class DetectionHeadTest(parameterized.TestCase, tf.test.TestCase):
       (1, 1, 1, False, False, False),
       (2, 1, 1, False, False, True),
   )
-  def test_forward(self, num, num_convs, num_fcs, use_separable_conv, use_sync_bn, panet):
+  def test_forward(self, num, num_convs, num_fcs, use_separable_conv, use_sync_bn, afp):
     print("\n---------------------------Test forward of Detection Head.{}---------------------------".format(num))
     detection_head = instance_heads.DetectionHead(
         num_classes=3,
@@ -47,13 +47,14 @@ class DetectionHeadTest(parameterized.TestCase, tf.test.TestCase):
         kernel_regularizer=None,
         bias_regularizer=None,
     )
-    if not panet:
+    print("after init()...")
+    if not afp:
         roi_features = np.random.rand(2, 10, 128, 128, 16)
     else:
         roi_features = []
         for i in range(3, 7+1):
             roi_features.append(np.random.rand(2, 10, 128, 128, 16))
-    scores, boxes = detection_head(roi_features, panet=panet)
+    scores, boxes = detection_head(roi_features, afp=afp)
     print("scores.shape:", scores.numpy().shape)
     print("boxes.shape:", boxes.numpy().shape)
     self.assertAllEqual(scores.numpy().shape, [2, 10, 3])

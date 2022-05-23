@@ -324,6 +324,8 @@ class Controller:
     self._require("trainer", for_method="train_and_evaluate")
     self._require("evaluator", for_method="train_and_evaluate")
 
+    # global_step increases by 1 after each training iteration.
+    # We should have global_step.numpy() == self.optimizer.iterations.numpy()
     current_step = self.global_step.numpy()  # Cache, since this is expensive.
     eval_interval = eval_interval or (train_steps - current_step)
     while current_step < train_steps:

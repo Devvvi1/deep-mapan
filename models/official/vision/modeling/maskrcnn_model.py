@@ -141,12 +141,12 @@ class MaskRCNNModel(tf.keras.Model):
            gt_boxes: Optional[tf.Tensor] = None,
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
-           training: Optional[bool] = None, 
-           panet: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+           training: Optional[bool] = None,
+           afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
 
     model_outputs, intermediate_outputs = self._call_box_outputs(
         images=images, image_shape=image_shape, anchor_boxes=anchor_boxes,
-        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, panet=panet)
+        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, afp=afp)
     if not self._include_mask:
       return model_outputs
 
@@ -159,7 +159,7 @@ class MaskRCNNModel(tf.keras.Model):
         matched_gt_classes=intermediate_outputs['matched_gt_classes'],
         gt_masks=gt_masks,
         training=training,  
-        panet=panet)
+        afp=afp)
     model_outputs.update(model_mask_outputs)
     return model_outputs
 
@@ -179,7 +179,7 @@ class MaskRCNNModel(tf.keras.Model):
       gt_boxes: Optional[tf.Tensor] = None,
       gt_classes: Optional[tf.Tensor] = None,
       training: Optional[bool] = None,  
-      panet: Optional[bool] = None) -> Tuple[
+      afp: Optional[bool] = None) -> Tuple[
           Mapping[str, tf.Tensor], Mapping[str, tf.Tensor]]:
     """Implementation of the Faster-RCNN logic for boxes."""
     model_outputs = {}
@@ -236,7 +236,7 @@ class MaskRCNNModel(tf.keras.Model):
            gt_boxes=gt_boxes,
            gt_classes=gt_classes,
            training=training,
-           panet=panet,
+           afp=afp,
            model_outputs=model_outputs,
            cascade_num=cascade_num,
            regression_weights=regression_weights)
@@ -298,7 +298,7 @@ class MaskRCNNModel(tf.keras.Model):
       matched_gt_classes: tf.Tensor,
       gt_masks: tf.Tensor,
       training: Optional[bool] = None,
-      panet: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+      afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
     """Implementation of Mask-RCNN mask prediction logic."""
 
     model_outputs = dict(model_box_outputs)
@@ -317,7 +317,7 @@ class MaskRCNNModel(tf.keras.Model):
       roi_classes = model_outputs['detection_classes']
 
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, current_rois, roi_classes, panet)
+        features, current_rois, roi_classes, afp)
 
     if training:
       model_outputs.update({
@@ -329,7 +329,7 @@ class MaskRCNNModel(tf.keras.Model):
       })
     return model_outputs
 
-  def _run_frcnn_head(self, features, rois, gt_boxes, gt_classes, training, panet,
+  def _run_frcnn_head(self, features, rois, gt_boxes, gt_classes, training, afp,
                       model_outputs, cascade_num, regression_weights):
     """Runs the frcnn head that does both class and box prediction.
 
@@ -397,11 +397,11 @@ class MaskRCNNModel(tf.keras.Model):
       })
 
     # 4.Get roi features.
-    roi_features = self.roi_aligner(features, rois, panet=panet)
+    roi_features = self.roi_aligner(features, rois, afp=afp)
 
     # 5.Run frcnn head to get class and bbox predictions.
     current_detection_head = self.detection_head[cascade_num]
-    class_outputs, box_outputs = current_detection_head(roi_features, panet=panet)
+    class_outputs, box_outputs = current_detection_head(roi_features, afp=afp)
 
     model_outputs.update({
         'class_outputs_{}'.format(cascade_num)
@@ -413,12 +413,12 @@ class MaskRCNNModel(tf.keras.Model):
     return (class_outputs, box_outputs, model_outputs, matched_gt_boxes,
             matched_gt_classes, matched_gt_indices, rois)
 
-  def _features_to_mask_outputs(self, features, rois, roi_classes, panet):
+  def _features_to_mask_outputs(self, features, rois, roi_classes, afp):
     # Mask RoI align.
-    mask_roi_features = self.mask_roi_aligner(features, rois, panet=panet)
+    mask_roi_features = self.mask_roi_aligner(features, rois, afp=afp)
 
     # Mask head.
-    raw_masks = self.mask_head([mask_roi_features, roi_classes], panet=panet)
+    raw_masks = self.mask_head([mask_roi_features, roi_classes], afp=afp)
 
     return raw_masks, tf.nn.sigmoid(raw_masks)
 
