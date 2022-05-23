@@ -125,6 +125,7 @@ def get_distribution_strategy(distribution_strategy="mirrored",
       `num_gpus` is larger than 1; or `num_gpus` is negative or if
       `distribution_strategy` is `tpu` but `tpu_address` is not specified.
   """
+  print("----------------- in get_distribution_strategy() -----------------")
   del kwargs
   if num_gpus < 0:
     raise ValueError("`num_gpus` can not be negative.")
@@ -139,6 +140,7 @@ def get_distribution_strategy(distribution_strategy="mirrored",
     raise ValueError(msg)
 
   distribution_strategy = distribution_strategy.lower()
+  print("distribution_strategy:", distribution_strategy)
   if distribution_strategy == "off":
     if num_gpus > 1:
       raise ValueError(f"When {num_gpus} GPUs are specified, "
@@ -149,6 +151,7 @@ def get_distribution_strategy(distribution_strategy="mirrored",
   if distribution_strategy == "tpu":
     # When tpu_address is an empty string, we communicate with local TPUs.
     cluster_resolver = tpu_initialize(tpu_address)
+    print("tpu_initialize() finished")
     return tf.distribute.TPUStrategy(cluster_resolver)
 
   if distribution_strategy == "multi_worker_mirrored":
@@ -178,6 +181,8 @@ def get_distribution_strategy(distribution_strategy="mirrored",
 
   raise ValueError("Unrecognized Distribution Strategy: %r" %
                    distribution_strategy)
+
+  print("----------------- out get_distribution_strategy() -----------------")
 
 
 def configure_cluster(worker_hosts=None, task_index=-1):
