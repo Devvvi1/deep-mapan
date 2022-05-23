@@ -84,9 +84,14 @@ def tpu_initialize(tpu_address):
   """
   cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
       tpu=tpu_address)
+  print("----------------- tf.distribute.cluster_resolver.TPUClusterResolver() -----------------")
+
   if tpu_address not in ("", "local"):
     tf.config.experimental_connect_to_cluster(cluster_resolver)
+  print("----------------- local -----------------")
+
   tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
+  print("----------------- tf.tpu.experimental.initialize_tpu_system() -----------------")
   return cluster_resolver
 
 
@@ -150,8 +155,9 @@ def get_distribution_strategy(distribution_strategy="mirrored",
 
   if distribution_strategy == "tpu":
     # When tpu_address is an empty string, we communicate with local TPUs.
+    print("----------------- in tpu_initialize() -----------------")
     cluster_resolver = tpu_initialize(tpu_address)
-    print("tpu_initialize() finished")
+    print("----------------- out tpu_initialize() -----------------")
     return tf.distribute.TPUStrategy(cluster_resolver)
 
   if distribution_strategy == "multi_worker_mirrored":
