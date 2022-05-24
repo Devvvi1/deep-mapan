@@ -85,7 +85,7 @@ def tpu_initialize(tpu_address):
   # print("os.environ['TPU_ADDR']:", os.environ['TPU_ADDR'])
   print("tpu_address:", tpu_address)
   # cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=tpu_address)
-  cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
+  cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
   # print('Running on TPU ', cluster_resolver.cluster_spec().as_dict()['worker'])
   print("----------------- tf.distribute.cluster_resolver.TPUClusterResolver() -----------------")
 
