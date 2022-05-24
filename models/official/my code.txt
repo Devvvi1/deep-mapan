@@ -43,7 +43,6 @@ python3 -m official.projects.deepmac_maskrcnn.modeling.maskrcnn_model_test
 
 python3 -m official.common.distribute_utils_test
 
-
 '''
 
 exit
