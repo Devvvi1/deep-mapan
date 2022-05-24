@@ -109,25 +109,27 @@ class DistributeUtilsTest(tf.test.TestCase):
   def test_tpu_strategy(self):
     print("\n---------------------------test_tpu_strategy()---------------------------")
     if not TPU_TEST:
+      print("no local TPUs!")
       self.skipTest('Only Cloud TPU VM instances can have local TPUs.')
     with self.assertRaises(ValueError):
       _ = distribute_utils.get_distribution_strategy('tpu')
 
     ds = distribute_utils.get_distribution_strategy('tpu', tpu_address='local')
+    print("after ds!")
     self.assertIsInstance(
         ds, tf.distribute.TPUStrategy)
     print("------------------------------------------------------------------------------------\n")
 
-  def test_invalid_strategy(self):
-    print("\n---------------------------test_invalid_strategy()---------------------------")
-    with self.assertRaisesRegexp(
-        ValueError,
-        'distribution_strategy must be a string but got: False. If'):
-      distribute_utils.get_distribution_strategy(False)
-    with self.assertRaisesRegexp(
-        ValueError, 'distribution_strategy must be a string but got: 1'):
-      distribute_utils.get_distribution_strategy(1)
-    print("------------------------------------------------------------------------------------\n")
+  # def test_invalid_strategy(self):
+  #   print("\n---------------------------test_invalid_strategy()---------------------------")
+  #   with self.assertRaisesRegexp(
+  #       ValueError,
+  #       'distribution_strategy must be a string but got: False. If'):
+  #     distribute_utils.get_distribution_strategy(False)
+  #   with self.assertRaisesRegexp(
+  #       ValueError, 'distribution_strategy must be a string but got: 1'):
+  #     distribute_utils.get_distribution_strategy(1)
+  #   print("------------------------------------------------------------------------------------\n")
 
   # def test_get_strategy_scope(self):
   #   print("\n---------------------------test_get_strategy_scope()---------------------------")
