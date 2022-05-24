@@ -94,7 +94,9 @@ class MaskRCNNTask(base_task.Task):
     if not self.task_config.init_checkpoint:
       return
 
+    print("----------------- in task.initialize() -----------------")
     ckpt_dir_or_file = self.task_config.init_checkpoint
+    print("ckpt_dir_or_file:", ckpt_dir_or_file)
     if tf.io.gfile.isdir(ckpt_dir_or_file):
       ckpt_dir_or_file = tf.train.latest_checkpoint(ckpt_dir_or_file)
 
@@ -116,6 +118,7 @@ class MaskRCNNTask(base_task.Task):
 
     logging.info('Finished loading pretrained checkpoint from %s',
                  ckpt_dir_or_file)
+    print("----------------- out task.initialize() -----------------")
 
   def build_inputs(self,
                    params: exp_cfg.DataConfig,
