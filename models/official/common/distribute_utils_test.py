@@ -131,14 +131,15 @@ class DistributeUtilsTest(tf.test.TestCase):
   #     distribute_utils.get_distribution_strategy(1)
   #   print("------------------------------------------------------------------------------------\n")
 
-  # def test_get_strategy_scope(self):
-  #   print("\n---------------------------test_get_strategy_scope()---------------------------")
-  #   ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
-  #   with distribute_utils.get_strategy_scope(ds):
-  #     self.assertIs(tf.distribute.get_strategy(), ds)
-  #   with distribute_utils.get_strategy_scope(None):
-  #     self.assertIsNot(tf.distribute.get_strategy(), ds)
-  #   print("------------------------------------------------------------------------------------\n")
+  def test_get_strategy_scope(self):
+    print("\n---------------------------test_get_strategy_scope()---------------------------")
+    # ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
+    ds = distribute_utils.get_distribution_strategy('tpu', tpu_address='local')
+    with distribute_utils.get_strategy_scope(ds):
+      self.assertIs(tf.distribute.get_strategy(), ds)
+    with distribute_utils.get_strategy_scope(None):
+      self.assertIsNot(tf.distribute.get_strategy(), ds)
+    print("------------------------------------------------------------------------------------\n")
 
 if __name__ == '__main__':
   tf.test.main()

@@ -3,16 +3,24 @@ export PROJECT_ID=deep-mapan
 
 gcloud config set project ${PROJECT_ID}
 
+# gcloud services identity create --service tpu.googleapis.com --project $PROJECT_ID
+# gcloud alpha services identity create --service tpu.googleapis.com --project $PROJECT_ID
 gcloud beta services identity create --service tpu.googleapis.com --project $PROJECT_ID
 （返回 service-PROJECT_NUMBER@cloud-tpu.iam.gserviceaccount.com）
 
 export TPU_NAME=tputest
 export ZONE=us-central1-a
 
+# gcloud alpha compute tpus versions list --zone=$ZONE
+# gcloud compute tpus versions list --zone=$ZONE
+
 gcloud alpha compute tpus tpu-vm create tputest \
+gcloud compute tpus tpu-vm create tputest \
 --zone=$ZONE \
 --accelerator-type=v3-8 \
+--version=nightly
 --version=tpu-vm-tf-2.8.0
+
 
 gcloud alpha compute tpus tpu-vm ssh tputest --zone=$ZONE
 
@@ -21,10 +29,11 @@ gcloud alpha compute tpus tpu-vm ssh tputest --zone=$ZONE
 # rm -r deep-mapan/
 
 git clone https://github.com/Devvvi1/deep-mapan.git
-export PYTHONPATH="${PYTHONPATH}:/deep-mapan/models"
+# export PYTHONPATH="${PYTHONPATH}:/deep-mapan/models"
 cd deep-mapan/models
 
 pip3 install -r official/requirements.txt
+export PYTHONPATH=$(pwd)
 
 python3 -m official.vision.modeling.decoders.fpn_test
 python3 -m official.vision.modeling.heads.instance_heads_test
