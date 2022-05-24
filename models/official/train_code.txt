@@ -3,7 +3,7 @@ export MODEL_DIR="gs://deep-mapan-train/checkpoint/mrcnn"
 export ANNOTAION_FILE="gs://deep-mapan-train/tf_data/coco/instances_val2017.json"
 export TRAIN_DATA="gs://deep-mapan-train/tf_data/coco/train2017/train2017-*"
 export EVAL_DATA="gs://deep-mapan-train/tf_data/coco/val2017/val2017-*"
-export TPU_NAME=tputest
+export TPU_NAME="tputest"
 
 export OVERRIDES="task.validation_data.input_path=${EVAL_DATA},\
 task.train_data.input_path=${TRAIN_DATA},\

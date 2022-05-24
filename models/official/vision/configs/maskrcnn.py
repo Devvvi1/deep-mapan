@@ -299,7 +299,7 @@ def maskrcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
   """COCO object detection with Mask R-CNN."""
   steps_per_epoch = 500
   coco_val_samples = 5000
-  train_batch_size = 64
+  train_batch_size = 32 # 64
   eval_batch_size = 8
 
   config = cfg.ExperimentConfig(
