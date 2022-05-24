@@ -25,39 +25,39 @@ TPU_TEST = 'test_tpu' in sys.argv[0]
 class DistributeUtilsTest(tf.test.TestCase):
   """Tests for distribute util functions."""
 
-  def test_invalid_args(self):
-    print("\n---------------------------test_invalid_args()---------------------------")
-    with self.assertRaisesRegex(ValueError, '`num_gpus` can not be negative.'):
-      _ = distribute_utils.get_distribution_strategy(num_gpus=-1)
+  # def test_invalid_args(self):
+  #   print("\n---------------------------test_invalid_args()---------------------------")
+  #   with self.assertRaisesRegex(ValueError, '`num_gpus` can not be negative.'):
+  #     _ = distribute_utils.get_distribution_strategy(num_gpus=-1)
+  #
+  #   with self.assertRaisesRegex(ValueError,
+  #                               '.*If you meant to pass the string .*'):
+  #     _ = distribute_utils.get_distribution_strategy(
+  #         distribution_strategy=False, num_gpus=0)
+  #   with self.assertRaisesRegex(ValueError, 'When 2 GPUs are specified.*'):
+  #     _ = distribute_utils.get_distribution_strategy(
+  #         distribution_strategy='off', num_gpus=2)
+  #   with self.assertRaisesRegex(ValueError,
+  #                               '`OneDeviceStrategy` can not be used.*'):
+  #     _ = distribute_utils.get_distribution_strategy(
+  #         distribution_strategy='one_device', num_gpus=2)
+  #   print("------------------------------------------------------------------------------------\n")
 
-    with self.assertRaisesRegex(ValueError,
-                                '.*If you meant to pass the string .*'):
-      _ = distribute_utils.get_distribution_strategy(
-          distribution_strategy=False, num_gpus=0)
-    with self.assertRaisesRegex(ValueError, 'When 2 GPUs are specified.*'):
-      _ = distribute_utils.get_distribution_strategy(
-          distribution_strategy='off', num_gpus=2)
-    with self.assertRaisesRegex(ValueError,
-                                '`OneDeviceStrategy` can not be used.*'):
-      _ = distribute_utils.get_distribution_strategy(
-          distribution_strategy='one_device', num_gpus=2)
-    print("------------------------------------------------------------------------------------\n")
+  # def test_one_device_strategy_cpu(self):
+  #   print("\n---------------------------test_one_device_strategy_cpu()---------------------------")
+  #   ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
+  #   self.assertEquals(ds.num_replicas_in_sync, 1)
+  #   self.assertEquals(len(ds.extended.worker_devices), 1)
+  #   self.assertIn('CPU', ds.extended.worker_devices[0])
+  #   print("------------------------------------------------------------------------------------\n")
 
-  def test_one_device_strategy_cpu(self):
-    print("\n---------------------------test_one_device_strategy_cpu()---------------------------")
-    ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
-    self.assertEquals(ds.num_replicas_in_sync, 1)
-    self.assertEquals(len(ds.extended.worker_devices), 1)
-    self.assertIn('CPU', ds.extended.worker_devices[0])
-    print("------------------------------------------------------------------------------------\n")
-
-  def test_one_device_strategy_gpu(self):
-    print("\n---------------------------test_one_device_strategy_gpu()---------------------------")
-    ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=1)
-    self.assertEquals(ds.num_replicas_in_sync, 1)
-    self.assertEquals(len(ds.extended.worker_devices), 1)
-    self.assertIn('GPU', ds.extended.worker_devices[0])
-    print("------------------------------------------------------------------------------------\n")
+  # def test_one_device_strategy_gpu(self):
+  #   print("\n---------------------------test_one_device_strategy_gpu()---------------------------")
+  #   ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=1)
+  #   self.assertEquals(ds.num_replicas_in_sync, 1)
+  #   self.assertEquals(len(ds.extended.worker_devices), 1)
+  #   self.assertIn('GPU', ds.extended.worker_devices[0])
+  #   print("------------------------------------------------------------------------------------\n")
 
   # def test_mirrored_strategy(self):
   #   print("\n---------------------------test_mirrored_strategy()---------------------------")
@@ -129,14 +129,14 @@ class DistributeUtilsTest(tf.test.TestCase):
       distribute_utils.get_distribution_strategy(1)
     print("------------------------------------------------------------------------------------\n")
 
-  def test_get_strategy_scope(self):
-    print("\n---------------------------test_get_strategy_scope()---------------------------")
-    ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
-    with distribute_utils.get_strategy_scope(ds):
-      self.assertIs(tf.distribute.get_strategy(), ds)
-    with distribute_utils.get_strategy_scope(None):
-      self.assertIsNot(tf.distribute.get_strategy(), ds)
-    print("------------------------------------------------------------------------------------\n")
+  # def test_get_strategy_scope(self):
+  #   print("\n---------------------------test_get_strategy_scope()---------------------------")
+  #   ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
+  #   with distribute_utils.get_strategy_scope(ds):
+  #     self.assertIs(tf.distribute.get_strategy(), ds)
+  #   with distribute_utils.get_strategy_scope(None):
+  #     self.assertIsNot(tf.distribute.get_strategy(), ds)
+  #   print("------------------------------------------------------------------------------------\n")
 
 if __name__ == '__main__':
   tf.test.main()
