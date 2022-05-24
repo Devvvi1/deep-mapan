@@ -108,11 +108,11 @@ class DistributeUtilsTest(tf.test.TestCase):
 
   def test_tpu_strategy(self):
     print("\n---------------------------test_tpu_strategy()---------------------------")
-    if not TPU_TEST:
-      print("no local TPUs!")
-      self.skipTest('Only Cloud TPU VM instances can have local TPUs.')
-    with self.assertRaises(ValueError):
-      _ = distribute_utils.get_distribution_strategy('tpu')
+    # if not TPU_TEST:
+    #   print("no local TPUs!")
+    #   self.skipTest('Only Cloud TPU VM instances can have local TPUs.')
+    # with self.assertRaises(ValueError):
+    #   _ = distribute_utils.get_distribution_strategy('tpu')
 
     ds = distribute_utils.get_distribution_strategy('tpu', tpu_address='local')
     print("after ds!")
