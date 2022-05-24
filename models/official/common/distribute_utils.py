@@ -87,8 +87,9 @@ def tpu_initialize(tpu_address):
   print("----------------- tf.distribute.cluster_resolver.TPUClusterResolver() -----------------")
 
   if tpu_address not in ("", "local"):
+    print("----------------- local -----------------")
     tf.config.experimental_connect_to_cluster(cluster_resolver)
-  print("----------------- local -----------------")
+    print("----------------- tf.config.experimental_connect_to_cluster() -----------------")
 
   tf.tpu.experimental.initialize_tpu_system(cluster_resolver)
   print("----------------- tf.tpu.experimental.initialize_tpu_system() -----------------")
