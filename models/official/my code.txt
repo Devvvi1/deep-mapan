@@ -22,6 +22,7 @@ gcloud compute tpus tpu-vm create tputest \
 --version=nightly
 
 gcloud alpha compute tpus tpu-vm ssh tputest --zone=$ZONE
+gcloud compute tpus tpu-vm ssh tputest --zone=$ZONE
 
 # my code 
 '''
