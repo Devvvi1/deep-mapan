@@ -133,8 +133,8 @@ class DistributeUtilsTest(tf.test.TestCase):
 
   def test_get_strategy_scope(self):
     print("\n---------------------------test_get_strategy_scope()---------------------------")
-    # ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
-    ds = distribute_utils.get_distribution_strategy('tpu', tpu_address='local')
+    ds = distribute_utils.get_distribution_strategy('one_device', num_gpus=0)
+    # ds = distribute_utils.get_distribution_strategy('tpu', tpu_address='local')
     with distribute_utils.get_strategy_scope(ds):
       self.assertIs(tf.distribute.get_strategy(), ds)
     with distribute_utils.get_strategy_scope(None):
