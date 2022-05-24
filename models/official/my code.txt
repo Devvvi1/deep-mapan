@@ -49,6 +49,8 @@ python3 -m official.common.distribute_utils_test
 exit
 
 gcloud alpha compute tpus tpu-vm delete tputest \
+--zone=$ZONE\
+gcloud compute tpus tpu-vm delete tputest \
 --zone=$ZONE
 
 gcloud compute tpus execution-groups list --zone=$ZONE

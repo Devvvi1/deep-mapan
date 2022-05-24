@@ -296,7 +296,7 @@ def build_fpn_decoder(
       input_specs=input_specs,
       min_level=model_config.min_level,
       max_level=model_config.max_level,
-      pant=model_config.bpa,
+      bpa=model_config.bpa,
       num_filters=decoder_cfg.num_filters,
       fusion_type=decoder_cfg.fusion_type,
       use_separable_conv=decoder_cfg.use_separable_conv,
