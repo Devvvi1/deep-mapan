@@ -15,7 +15,7 @@
 """TFM common training driver library."""
 # pytype: disable=attribute-error
 import os
-from typing import Any, Mapping, Optional, Tuple
+from typing import Any, Mapping, Optional, Tuple, List
 
 # Import libraries
 
@@ -40,6 +40,8 @@ def run_experiment(
     model_dir: str,
     run_post_eval: bool = False,
     save_summary: bool = True,
+    train_actions: Optional[List[orbit.Action]] = None,
+    eval_actions: Optional[List[orbit.Action]] = None,
     trainer: Optional[base_trainer.Trainer] = None,
     controller_cls=orbit.Controller,
     debug: bool = False,
@@ -56,6 +58,8 @@ def run_experiment(
     run_post_eval: Whether to run post eval once after training, metrics logs
       are returned.
     save_summary: Whether to save train and validation summary.
+    train_actions: Optional list of Orbit train actions.
+    eval_actions: Optional list of Orbit eval actions.
     trainer: the base_trainer.Trainer instance. It should be created within the
       strategy.scope().
     controller_cls: The controller class to manage the train and eval process.
@@ -71,7 +75,6 @@ def run_experiment(
   with distribution_strategy.scope():
     # ------------ 创建训练器 -------------#
     if not trainer:
-      # 主要是建立模型和优化器，即task.build_model()和task.create_optimizer()
       trainer = train_utils.create_trainer(
           params,
           task,
@@ -95,6 +98,13 @@ def run_experiment(
     checkpoint_manager = None
   print("---------------------- Finished Checkpoint Manager ----------------------")
 
+  train_actions = [] if not train_actions else train_actions
+  train_actions += actions.get_train_actions(
+      params, trainer, model_dir, checkpoint_manager=checkpoint_manager)
+
+  eval_actions = [] if not eval_actions else eval_actions
+  eval_actions += actions.get_eval_actions(params, trainer, model_dir)
+
   # ------------ 创建控制器去管理train和eval -------------#
   controller = controller_cls(
       strategy=distribution_strategy,
@@ -109,11 +119,8 @@ def run_experiment(
       (save_summary) else None,
       summary_interval=params.trainer.summary_interval if
       (save_summary) else None,
-      # Some additional customization can be achieved by supplying `train_actions` or
-      #   `eval_actions` when constructing the `Controller`
-      train_actions=actions.get_train_actions(
-          params, trainer, model_dir, checkpoint_manager=checkpoint_manager),
-      eval_actions=actions.get_eval_actions(params, trainer, model_dir))
+      train_actions=train_actions,
+      eval_actions=eval_actions)
   print("---------------------- Created controller ----------------------")
 
   if debug:

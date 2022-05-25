@@ -163,7 +163,7 @@ class SqueezeExcitation(tf.keras.layers.Layer):
         strides=1,
         padding='same',
         use_bias=True,
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         bias_regularizer=self._bias_regularizer)
 
@@ -173,7 +173,7 @@ class SqueezeExcitation(tf.keras.layers.Layer):
         strides=1,
         padding='same',
         use_bias=True,
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         bias_regularizer=self._bias_regularizer)
 
@@ -697,7 +697,7 @@ class GlobalAveragePool3D(tf.keras.layers.Layer):
   def call(self,
            inputs: tf.Tensor,
            states: Optional[States] = None,
-           output_states: bool = True
+           output_states: bool = False
            ) -> Union[tf.Tensor, Tuple[tf.Tensor, States]]:
     """Calls the layer with the given inputs.
 
@@ -813,13 +813,14 @@ class SpatialAveragePool3D(tf.keras.layers.Layer):
 
     super(SpatialAveragePool3D, self).build(input_shape)
 
-  def call(self, inputs):
+  def call(self, inputs, states=None, output_states: bool = False):
     """Calls the layer with the given inputs."""
     if inputs.shape.rank != 5:
       raise ValueError(
           'Input should have rank {}, got {}'.format(5, inputs.shape.rank))
 
-    return tf.reduce_mean(inputs, axis=(2, 3), keepdims=self._keepdims)
+    output = tf.reduce_mean(inputs, axis=(2, 3), keepdims=self._keepdims)
+    return (output, states) if output_states else output
 
 
 class CausalConvMixin:
@@ -1154,7 +1155,7 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
     conv1 = tf.keras.layers.Conv2D(
         filters=self._output_channels,
         kernel_size=(1, 1),
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         use_bias=False)
     norm1 = self._bn_op(
@@ -1174,7 +1175,8 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
                 kernel_size=kernel_size,
                 padding='same',
                 depthwise_regularizer=self._kernel_regularizer,
-                depthwise_initializer=self._kernel_initializer,
+                depthwise_initializer=tf_utils.clone_initializer(
+                    self._kernel_initializer),
                 dilation_rate=dilation_rate,
                 use_bias=False)
         ]
@@ -1185,7 +1187,8 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
               kernel_size=kernel_size,
               padding='same',
               kernel_regularizer=self._kernel_regularizer,
-              kernel_initializer=self._kernel_initializer,
+              kernel_initializer=tf_utils.clone_initializer(
+                  self._kernel_initializer),
               dilation_rate=dilation_rate,
               use_bias=False)
       ]
@@ -1207,7 +1210,7 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
     conv2 = tf.keras.layers.Conv2D(
         filters=self._output_channels,
         kernel_size=(1, 1),
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         use_bias=False)
     norm2 = self._bn_op(
@@ -1224,7 +1227,8 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         tf.keras.layers.Conv2D(
             filters=self._output_channels,
             kernel_size=(1, 1),
-            kernel_initializer=self._kernel_initializer,
+            kernel_initializer=tf_utils.clone_initializer(
+                self._kernel_initializer),
             kernel_regularizer=self._kernel_regularizer,
             use_bias=False),
         self._bn_op(

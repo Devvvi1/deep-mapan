@@ -168,10 +168,10 @@ def multilevel_crop_and_resize(features,
     batch_size, max_feature_height, max_feature_width, num_filters = (
         features_shape[0], features_shape[1], features_shape[2],
         features_shape[3])
-    print("features.shape:[{},{},{},{}]".format(batch_size, max_feature_height, max_feature_width, num_filters))
+    # print("features.shape:[{},{},{},{}]".format(batch_size, max_feature_height, max_feature_width, num_filters))
 
     num_boxes = tf.shape(boxes)[1]
-    print("boxes.shape:", tf.shape(boxes))
+    # print("boxes.shape:", tf.shape(boxes))
 
     # ------------------ Stack feature pyramid into a features_all of shape -------------------#
     # [batch_size, levels, height, width, num_filters].
@@ -212,7 +212,7 @@ def multilevel_crop_and_resize(features,
         # levels = tf.add(tf.subtract(levels, levels), specified_level)
         levels = tf.zeros([batch_size, num_boxes])
         levels = tf.add(tf.cast(levels, tf.int32), specified_level)
-        print("levels.shape:", tf.shape(levels))
+        # print("levels.shape:", tf.shape(levels))
     else:
         areas_sqrt = tf.sqrt(
             tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
@@ -230,11 +230,11 @@ def multilevel_crop_and_resize(features,
     # scale_to_level is the strides of each layer of the FPN Pyramid
     # 每个 level 有对应的步幅，即缩放比例
     # print("levels:", levels)
-    print("levels.shape:", tf.shape(levels))
+    # print("levels.shape:", tf.shape(levels))
     scale_to_level = tf.cast(
         tf.pow(tf.constant(2.0), tf.cast(levels, tf.float32)),
         dtype=boxes.dtype)
-    print("scale_to_level.shape:", tf.shape(scale_to_level))
+    # print("scale_to_level.shape:", tf.shape(scale_to_level))
     boxes /= tf.expand_dims(scale_to_level, axis=2)
     box_width /= scale_to_level
     box_height /= scale_to_level

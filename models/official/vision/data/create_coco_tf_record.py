@@ -31,7 +31,6 @@ import collections
 import json
 import logging
 import os
-import sys
 
 from absl import app  # pylint:disable=unused-import
 from absl import flags
@@ -41,7 +40,6 @@ from pycocotools import mask
 import tensorflow as tf
 
 import multiprocessing as mp
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from official.vision.data import tfrecord_lib
 
 
@@ -114,7 +112,7 @@ def generate_coco_panoptics_masks(segments_info, mask_path,
       represent "stuff" and "things" classes respectively.
 
   Returns:
-    A dict with with keys: [u'semantic_segmentation_mask', u'category_mask',
+    A dict with keys: [u'semantic_segmentation_mask', u'category_mask',
       u'instance_mask']. The dict contains 'category_mask' and 'instance_mask'
       only if `include_panoptic_eval_masks` is set to True.
   """

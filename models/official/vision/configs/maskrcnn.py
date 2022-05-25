@@ -161,8 +161,6 @@ class MaskRCNN(hyperparams.Config):
   input_size: List[int] = dataclasses.field(default_factory=list)
   min_level: int = 2
   max_level: int = 6
-  bpa: bool = False
-  afp: bool = False
   anchor: Anchor = Anchor()
   include_mask: bool = True
   backbone: backbones.Backbone = backbones.Backbone(
@@ -299,7 +297,7 @@ def maskrcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
   """COCO object detection with Mask R-CNN."""
   steps_per_epoch = 500
   coco_val_samples = 5000
-  train_batch_size = 32 # 64
+  train_batch_size = 64
   eval_batch_size = 8
 
   config = cfg.ExperimentConfig(
