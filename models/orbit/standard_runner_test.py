@@ -113,13 +113,17 @@ class TestTrainer(standard_runner.StandardTrainer):
 class StandardRunnerTest(parameterized.TestCase):
 
   def test_default_trainer(self):
+    print("\n---------------------------test_default_trainer()---------------------------")
     trainer = TestTrainer()
+    print("------------------------------------------------------------------------------\n")
     self.assertEqual(trainer.train(tf.constant(10)), 10)
 
   def test_trainer_with_tpu_summary_optimization(self):
+    print("\n---------------------------test_trainer_with_tpu_summary_optimization()---------------------------")
     options = standard_runner.StandardTrainerOptions(
         use_tpu_summary_optimization=True)
     trainer = TestTrainer(options)
+    print("----------------------------------------------------------------------------------------------------\n")
     self.assertEqual(trainer.train(tf.constant(10)), 10)
 
   # @parameterized.named_parameters(("use_tf_while_loop", True), ("", False))

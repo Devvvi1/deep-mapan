@@ -252,6 +252,7 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
     self.model_dir = self.get_temp_dir()
 
   def test_no_checkpoint(self):
+    print("\n---------------------------test_no_checkpoint()---------------------------")
     test_runner = TestRunner()
     # No checkpoint manager and no strategy.
     test_controller = controller.Controller(
@@ -279,93 +280,95 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
     test_runner.global_step.assign(0)
     test_controller.train_and_evaluate(
         train_steps=10, eval_steps=2, eval_interval=6)
+    print("----------------------------------------------------------------------------\n")
     self.assertEqual(test_runner.global_step, 10)
 
-  def test_no_checkpoint_and_summaries(self):
-    test_runner = TestRunner()
-    # No checkpoint + summary directories.
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        steps_per_loop=2)
-    test_controller.train_and_evaluate(
-        train_steps=10, eval_steps=2, eval_interval=6)
-    self.assertEqual(test_runner.global_step, 10)
+  # def test_no_checkpoint_and_summaries(self):
+  #   test_runner = TestRunner()
+  #   # No checkpoint + summary directories.
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       steps_per_loop=2)
+  #   test_controller.train_and_evaluate(
+  #       train_steps=10, eval_steps=2, eval_interval=6)
+  #   self.assertEqual(test_runner.global_step, 10)
 
-  def test_has_checkpoint_no_summaries(self):
-    test_runner = TestRunner()
-    # Has checkpoint, but no summary directories.
-    checkpoint = tf.train.Checkpoint(model=test_runner.model)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step)
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        checkpoint_manager=checkpoint_manager,
-        steps_per_loop=2)
-    test_controller.train_and_evaluate(
-        train_steps=10, eval_steps=2, eval_interval=6)
-    self.assertEqual(test_runner.global_step, 10)
+  # def test_has_checkpoint_no_summaries(self):
+  #   test_runner = TestRunner()
+  #   # Has checkpoint, but no summary directories.
+  #   checkpoint = tf.train.Checkpoint(model=test_runner.model)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step)
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       checkpoint_manager=checkpoint_manager,
+  #       steps_per_loop=2)
+  #   test_controller.train_and_evaluate(
+  #       train_steps=10, eval_steps=2, eval_interval=6)
+  #   self.assertEqual(test_runner.global_step, 10)
+  #
+  #   # No summaries are saved.
+  #   self.assertEmpty(tf.io.gfile.glob(
+  #       os.path.join(checkpoint_manager.directory, "events.*")))
 
-    # No summaries are saved.
-    self.assertEmpty(tf.io.gfile.glob(
-        os.path.join(checkpoint_manager.directory, "events.*")))
+  # def test_has_checkpoint_eval_summary_only(self):
+  #   test_runner = TestRunner()
+  #   # Has checkpoint, but no summary directories.
+  #   checkpoint = tf.train.Checkpoint(model=test_runner.model)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step)
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       checkpoint_manager=checkpoint_manager,
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"),
+  #       steps_per_loop=2)
+  #   test_controller.train_and_evaluate(
+  #       train_steps=10, eval_steps=2, eval_interval=6)
+  #   self.assertEqual(test_runner.global_step, 10)
+  #
+  #   # Training summaries are not saved.
+  #   self.assertEmpty(tf.io.gfile.glob(
+  #       os.path.join(checkpoint_manager.directory, "events.*")))
+  #   # Evaluation summaries are saved.
+  #   self.assertNotEmpty(tf.io.gfile.glob(
+  #       os.path.join(self.model_dir, "summaries/eval/events.*")))
 
-  def test_has_checkpoint_eval_summary_only(self):
-    test_runner = TestRunner()
-    # Has checkpoint, but no summary directories.
-    checkpoint = tf.train.Checkpoint(model=test_runner.model)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step)
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        checkpoint_manager=checkpoint_manager,
-        eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"),
-        steps_per_loop=2)
-    test_controller.train_and_evaluate(
-        train_steps=10, eval_steps=2, eval_interval=6)
-    self.assertEqual(test_runner.global_step, 10)
-
-    # Training summaries are not saved.
-    self.assertEmpty(tf.io.gfile.glob(
-        os.path.join(checkpoint_manager.directory, "events.*")))
-    # Evaluation summaries are saved.
-    self.assertNotEmpty(tf.io.gfile.glob(
-        os.path.join(self.model_dir, "summaries/eval/events.*")))
-
-  def test_restore_from_most_recent_checkpoint(self):
-    test_runner = TestRunner()
-    checkpoint = tf.train.Checkpoint(model=test_runner.model)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step,
-        checkpoint_interval=5)
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        global_step=test_runner.global_step,
-        checkpoint_manager=checkpoint_manager,
-        eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"),
-        steps_per_loop=5)
-    test_controller.train(20)
-    self.assertLen(checkpoint_manager.checkpoints, 4)
-    restored_path = test_controller.restore_checkpoint()
-    self.assertEqual(restored_path, checkpoint_manager.checkpoints[-1])
+  # def test_restore_from_most_recent_checkpoint(self):
+  #   test_runner = TestRunner()
+  #   checkpoint = tf.train.Checkpoint(model=test_runner.model)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step,
+  #       checkpoint_interval=5)
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       global_step=test_runner.global_step,
+  #       checkpoint_manager=checkpoint_manager,
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"),
+  #       steps_per_loop=5)
+  #   test_controller.train(20)
+  #   self.assertLen(checkpoint_manager.checkpoints, 4)
+  #   restored_path = test_controller.restore_checkpoint()
+  #   self.assertEqual(restored_path, checkpoint_manager.checkpoints[-1])
 
   @parameterized.named_parameters(("return_numpy", True),
                                   ("return_tensor", False))
   def test_train_and_evaluate(self, return_numpy):
+    print("\n---------------------------test_train_and_evaluate()---------------------------")
     test_runner = TestRunner(return_numpy=return_numpy)
 
     checkpoint = tf.train.Checkpoint(
@@ -386,7 +389,7 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
         eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
     test_controller.train_and_evaluate(
         train_steps=10, eval_steps=2, eval_interval=6)
-
+    print("--------------------------------------------------------------------------------\n")
     # Checkpoints are saved.
     self.assertNotEmpty(tf.io.gfile.glob(os.path.join(self.model_dir, "ckpt*")))
 
@@ -403,6 +406,8 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
             "eval_loss", os.path.join(self.model_dir, "summaries/eval")))
 
   def test_train_only(self):
+    print("\n---------------------------test_train_only()---------------------------")
+
     test_runner = TestRunner()
 
     checkpoint = tf.train.Checkpoint(
@@ -422,7 +427,7 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
         eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"),
     )
     test_controller.train(steps=10)
-
+    print("-------------------------------------------------------------------------\n")
     # Checkpoints are saved.
     self.assertNotEmpty(tf.io.gfile.glob(os.path.join(self.model_dir, "ckpt*")))
 
@@ -435,68 +440,70 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
     self.assertFalse(
         tf.io.gfile.exists(os.path.join(self.model_dir, "summaries/eval")))
 
-  def test_evaluate_only(self):
-    test_runner = TestRunner()
+  # def test_evaluate_only(self):
+  #   test_runner = TestRunner()
+  #
+  #   checkpoint = tf.train.Checkpoint(model=test_runner.model)
+  #   checkpoint.save(os.path.join(self.model_dir, "ckpt"))
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step)
+  #   test_controller = controller.Controller(
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       checkpoint_manager=checkpoint_manager,
+  #       summary_dir=os.path.join(self.model_dir, "summaries/train"),
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
+  #   eval_results = test_controller.evaluate(steps=2)
+  #
+  #   # Only eval summaries are written
+  #   self.assertFalse(
+  #       tf.io.gfile.exists(os.path.join(self.model_dir, "summaries/train")))
+  #   self.assertNotEmpty(
+  #       tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries/eval")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "eval_loss", os.path.join(self.model_dir, "summaries/eval")))
+  #   self.assertIn("eval_loss", eval_results)
+  #
+  #   # Tests continuous eval with timeout and timeout_fn.
+  #   done_file = os.path.join(self.model_dir, "summaries/eval/Done")
+  #
+  #   def timeout_fn():
+  #     with tf.io.gfile.GFile(done_file, "w") as f:
+  #       f.write("DONE")
+  #       return True
+  #
+  #   test_controller = controller.Controller(
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       checkpoint_manager=checkpoint_manager,
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
+  #   test_controller.evaluate_continuously(
+  #       timeout=1, timeout_fn=timeout_fn, steps=2)
+  #   self.assertNotEmpty(tf.io.gfile.glob(done_file))
 
-    checkpoint = tf.train.Checkpoint(model=test_runner.model)
-    checkpoint.save(os.path.join(self.model_dir, "ckpt"))
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step)
-    test_controller = controller.Controller(
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        checkpoint_manager=checkpoint_manager,
-        summary_dir=os.path.join(self.model_dir, "summaries/train"),
-        eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
-    eval_results = test_controller.evaluate(steps=2)
-
-    # Only eval summaries are written
-    self.assertFalse(
-        tf.io.gfile.exists(os.path.join(self.model_dir, "summaries/train")))
-    self.assertNotEmpty(
-        tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries/eval")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "eval_loss", os.path.join(self.model_dir, "summaries/eval")))
-    self.assertIn("eval_loss", eval_results)
-
-    # Tests continuous eval with timeout and timeout_fn.
-    done_file = os.path.join(self.model_dir, "summaries/eval/Done")
-
-    def timeout_fn():
-      with tf.io.gfile.GFile(done_file, "w") as f:
-        f.write("DONE")
-        return True
-
-    test_controller = controller.Controller(
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        checkpoint_manager=checkpoint_manager,
-        eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
-    test_controller.evaluate_continuously(
-        timeout=1, timeout_fn=timeout_fn, steps=2)
-    self.assertNotEmpty(tf.io.gfile.glob(done_file))
-
-  def test_no_eval_steps(self):
-    test_runner = TestRunner()
-
-    checkpoint = tf.train.Checkpoint(model=test_runner.model)
-    checkpoint.save(os.path.join(self.model_dir, "ckpt"))
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step)
-    test_controller = controller.Controller(
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        checkpoint_manager=checkpoint_manager)
-    test_controller.evaluate()
+  # def test_no_eval_steps(self):
+  #   test_runner = TestRunner()
+  #
+  #   checkpoint = tf.train.Checkpoint(model=test_runner.model)
+  #   checkpoint.save(os.path.join(self.model_dir, "ckpt"))
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step)
+  #   test_controller = controller.Controller(
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       checkpoint_manager=checkpoint_manager)
+  #   test_controller.evaluate()
 
   def test_already_trained_model(self):
+    print("\n---------------------------test_already_trained_model()---------------------------")
+
     test_runner = TestRunner()
     test_runner.global_step.assign(10)
 
@@ -515,140 +522,143 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
         checkpoint_manager=checkpoint_manager)
     # `global_step` is already `train_steps`.
     test_controller.train(steps=10)
+    print("------------------------------------------------------------------------------------\n")
 
-  def test_summaries_inside_train_fn(self):
-    test_runner = TestTrainerWithSummaries()
+  # def test_summaries_inside_train_fn(self):
+  #   test_runner = TestTrainerWithSummaries()
+  #
+  #   checkpoint = tf.train.Checkpoint(
+  #       model=test_runner.model, optimizer=test_runner.optimizer)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step)
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       global_step=test_runner.global_step,
+  #       steps_per_loop=2,
+  #       summary_dir=os.path.join(self.model_dir, "summaries/train"),
+  #       summary_interval=2,
+  #       checkpoint_manager=checkpoint_manager,
+  #   )
+  #   test_controller.train(steps=10)
+  #
+  #   # Checkpoints are saved.
+  #   self.assertEmpty(tf.io.gfile.glob(os.path.join(self.model_dir, "ckpt*")))
+  #
+  #   # Only train summaries are written.
+  #   self.assertNotEmpty(
+  #       tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries/train")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "loss", os.path.join(self.model_dir, "summaries/train")))
+  #   self.assertFalse(
+  #       tf.io.gfile.exists(os.path.join(self.model_dir, "summaries/eval")))
 
-    checkpoint = tf.train.Checkpoint(
-        model=test_runner.model, optimizer=test_runner.optimizer)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step)
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        global_step=test_runner.global_step,
-        steps_per_loop=2,
-        summary_dir=os.path.join(self.model_dir, "summaries/train"),
-        summary_interval=2,
-        checkpoint_manager=checkpoint_manager,
-    )
-    test_controller.train(steps=10)
+  # def test_train_and_evaluate_with_same_summary_dir(self):
+  #   test_runner = TestRunner()
+  #
+  #   checkpoint = tf.train.Checkpoint(
+  #       model=test_runner.model, optimizer=test_runner.optimizer)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step)
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       steps_per_loop=2,
+  #       summary_dir=os.path.join(self.model_dir, "summaries"),
+  #       checkpoint_manager=checkpoint_manager,
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries"))
+  #   test_controller.train_and_evaluate(
+  #       train_steps=10, eval_steps=2, eval_interval=6)
+  #
+  #   # Loss and accuracy values should be written into summaries.
+  #   self.assertNotEmpty(
+  #       tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "loss", os.path.join(self.model_dir, "summaries")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "eval_loss", os.path.join(self.model_dir, "summaries")))
 
-    # Checkpoints are saved.
-    self.assertEmpty(tf.io.gfile.glob(os.path.join(self.model_dir, "ckpt*")))
+  # def test_early_stop_on_eval_loss(self):
+  #   test_runner = TestRunner()
+  #
+  #   class EarlyStopController(controller.Controller):
+  #     """A subclass of Controller that supports early stopping."""
+  #
+  #     def train_and_evaluate(self,
+  #                            train_steps: int = None,
+  #                            eval_steps: int = None,
+  #                            eval_interval: int = None):
+  #       while self.global_step.numpy() < train_steps:
+  #         interval = min(train_steps - self.global_step.numpy(), eval_interval)
+  #         num_steps = self.global_step.numpy() + interval
+  #         self.train(steps=num_steps, checkpoint_at_completion=False)
+  #         self.evaluate(steps=eval_steps)
+  #         # Early stop condition.
+  #         if test_runner.eval_loss.result() < 0.1:
+  #           logging.info(
+  #               "Training early stopped as eval_loss %s is less than 0.1",
+  #               test_runner.eval_loss.result())
+  #           return
+  #
+  #   checkpoint = tf.train.Checkpoint(
+  #       model=test_runner.model, optimizer=test_runner.optimizer)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step,
+  #       checkpoint_interval=10)
+  #   test_controller = EarlyStopController(
+  #       trainer=test_runner,
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       steps_per_loop=2,
+  #       checkpoint_manager=checkpoint_manager)
+  #   test_controller.train_and_evaluate(
+  #       train_steps=10, eval_steps=6, eval_interval=2)
+  #
+  #   self.assertLess(test_runner.global_step, 10)
 
-    # Only train summaries are written.
-    self.assertNotEmpty(
-        tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries/train")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "loss", os.path.join(self.model_dir, "summaries/train")))
-    self.assertFalse(
-        tf.io.gfile.exists(os.path.join(self.model_dir, "summaries/eval")))
+  # def test_evaluate_with_loss_output(self):
+  #   test_evaluator = TestEvaluator()
+  #
+  #   checkpoint = tf.train.Checkpoint(model=test_evaluator.model)
+  #   checkpoint.save(os.path.join(self.model_dir, "ckpt"))
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint, self.model_dir, max_to_keep=None)
+  #   test_controller = controller.Controller(
+  #       evaluator=test_evaluator,
+  #       global_step=tf.Variable(0, dtype=tf.int64),
+  #       checkpoint_manager=checkpoint_manager,
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
+  #   test_controller.evaluate(steps=5)
+  #
+  #   # Only eval summaries are written
+  #   self.assertNotEmpty(
+  #       tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries/eval")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "eval_loss", os.path.join(self.model_dir, "summaries/eval")))
 
-  def test_train_and_evaluate_with_same_summary_dir(self):
-    test_runner = TestRunner()
-
-    checkpoint = tf.train.Checkpoint(
-        model=test_runner.model, optimizer=test_runner.optimizer)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step)
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        steps_per_loop=2,
-        summary_dir=os.path.join(self.model_dir, "summaries"),
-        checkpoint_manager=checkpoint_manager,
-        eval_summary_dir=os.path.join(self.model_dir, "summaries"))
-    test_controller.train_and_evaluate(
-        train_steps=10, eval_steps=2, eval_interval=6)
-
-    # Loss and accuracy values should be written into summaries.
-    self.assertNotEmpty(
-        tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "loss", os.path.join(self.model_dir, "summaries")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "eval_loss", os.path.join(self.model_dir, "summaries")))
-
-  def test_early_stop_on_eval_loss(self):
-    test_runner = TestRunner()
-
-    class EarlyStopController(controller.Controller):
-      """A subclass of Controller that supports early stopping."""
-
-      def train_and_evaluate(self,
-                             train_steps: int = None,
-                             eval_steps: int = None,
-                             eval_interval: int = None):
-        while self.global_step.numpy() < train_steps:
-          interval = min(train_steps - self.global_step.numpy(), eval_interval)
-          num_steps = self.global_step.numpy() + interval
-          self.train(steps=num_steps, checkpoint_at_completion=False)
-          self.evaluate(steps=eval_steps)
-          # Early stop condition.
-          if test_runner.eval_loss.result() < 0.1:
-            logging.info(
-                "Training early stopped as eval_loss %s is less than 0.1",
-                test_runner.eval_loss.result())
-            return
-
-    checkpoint = tf.train.Checkpoint(
-        model=test_runner.model, optimizer=test_runner.optimizer)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step,
-        checkpoint_interval=10)
-    test_controller = EarlyStopController(
-        trainer=test_runner,
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        steps_per_loop=2,
-        checkpoint_manager=checkpoint_manager)
-    test_controller.train_and_evaluate(
-        train_steps=10, eval_steps=6, eval_interval=2)
-
-    self.assertLess(test_runner.global_step, 10)
-
-  def test_evaluate_with_loss_output(self):
-    test_evaluator = TestEvaluator()
-
-    checkpoint = tf.train.Checkpoint(model=test_evaluator.model)
-    checkpoint.save(os.path.join(self.model_dir, "ckpt"))
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint, self.model_dir, max_to_keep=None)
-    test_controller = controller.Controller(
-        evaluator=test_evaluator,
-        global_step=tf.Variable(0, dtype=tf.int64),
-        checkpoint_manager=checkpoint_manager,
-        eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
-    test_controller.evaluate(steps=5)
-
-    # Only eval summaries are written
-    self.assertNotEmpty(
-        tf.io.gfile.listdir(os.path.join(self.model_dir, "summaries/eval")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "eval_loss", os.path.join(self.model_dir, "summaries/eval")))
-
-  def test_evaluate_with_no_output(self):
-    test_controller = controller.Controller(
-        evaluator=TestEvaluatorNoOutput(),
-        global_step=tf.Variable(0, dtype=tf.int64),
-        eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
-    self.assertEqual(test_controller.evaluate(steps=5), {})
+  # def test_evaluate_with_no_output(self):
+  #   test_controller = controller.Controller(
+  #       evaluator=TestEvaluatorNoOutput(),
+  #       global_step=tf.Variable(0, dtype=tf.int64),
+  #       eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
+  #   self.assertEqual(test_controller.evaluate(steps=5), {})
 
   def test_train_and_evaluate_reset_datasets(self):
+    print("\n---------------------------test_train_and_evaluate_reset_datasets()---------------------------")
+
     test_runner = TestRunner()
 
     test_controller = controller.Controller(
@@ -669,62 +679,65 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
 
     test_controller.train_and_evaluate(
         train_steps=10, eval_steps=2, eval_interval=6)
+    print("------------------------------------------------------------------------------------------------\n")
 
-  def test_eval_and_checkpoint_interval(self):
-    test_runner = TestRunner()
+  # def test_eval_and_checkpoint_interval(self):
+  #   test_runner = TestRunner()
+  #
+  #   checkpoint = tf.train.Checkpoint(
+  #       model=test_runner.model, optimizer=test_runner.optimizer)
+  #   checkpoint_manager = tf.train.CheckpointManager(
+  #       checkpoint,
+  #       self.model_dir,
+  #       max_to_keep=None,
+  #       step_counter=test_runner.global_step,
+  #       checkpoint_interval=5)
+  #   test_controller = controller.Controller(
+  #       trainer=test_runner,
+  #       evaluator=test_runner,
+  #       global_step=test_runner.global_step,
+  #       steps_per_loop=10,
+  #       checkpoint_manager=checkpoint_manager,
+  #       summary_dir=self.model_dir)
+  #   test_controller.train_and_evaluate(
+  #       train_steps=10, eval_steps=2, eval_interval=5)
+  #
+  #   # Expect 3 checkpoints to be saved at step: 5, 10.
+  #   self.assertLen(
+  #       tf.io.gfile.glob(os.path.join(self.model_dir, "ckpt-*.data*")), 2)
+  #   # Expect evaluation is performed 2 times at step: 5, 10.
+  #   self.assertLen(
+  #       summaries_with_matching_keyword("eval_loss", self.model_dir), 2)
 
-    checkpoint = tf.train.Checkpoint(
-        model=test_runner.model, optimizer=test_runner.optimizer)
-    checkpoint_manager = tf.train.CheckpointManager(
-        checkpoint,
-        self.model_dir,
-        max_to_keep=None,
-        step_counter=test_runner.global_step,
-        checkpoint_interval=5)
-    test_controller = controller.Controller(
-        trainer=test_runner,
-        evaluator=test_runner,
-        global_step=test_runner.global_step,
-        steps_per_loop=10,
-        checkpoint_manager=checkpoint_manager,
-        summary_dir=self.model_dir)
-    test_controller.train_and_evaluate(
-        train_steps=10, eval_steps=2, eval_interval=5)
-
-    # Expect 3 checkpoints to be saved at step: 5, 10.
-    self.assertLen(
-        tf.io.gfile.glob(os.path.join(self.model_dir, "ckpt-*.data*")), 2)
-    # Expect evaluation is performed 2 times at step: 5, 10.
-    self.assertLen(
-        summaries_with_matching_keyword("eval_loss", self.model_dir), 2)
-
-  def test_evaluate_with_nested_summaries(self):
-    test_evaluator = TestEvaluatorWithNestedSummary()
-    test_controller = controller.Controller(
-        evaluator=test_evaluator,
-        global_step=tf.Variable(0, dtype=tf.int64),
-        eval_summary_dir=self.model_dir)
-    test_controller.evaluate(steps=5)
-
-    self.assertNotEmpty(
-        tf.io.gfile.listdir(os.path.join(self.model_dir, "dataset")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "loss", os.path.join(self.model_dir, "dataset")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "accuracy", os.path.join(self.model_dir, "dataset")))
-
-    self.assertNotEmpty(
-        tf.io.gfile.listdir(os.path.join(self.model_dir, "dataset2")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "loss", os.path.join(self.model_dir, "dataset2")))
-    self.assertNotEmpty(
-        summaries_with_matching_keyword(
-            "accuracy", os.path.join(self.model_dir, "dataset2")))
+  # def test_evaluate_with_nested_summaries(self):
+  #   test_evaluator = TestEvaluatorWithNestedSummary()
+  #   test_controller = controller.Controller(
+  #       evaluator=test_evaluator,
+  #       global_step=tf.Variable(0, dtype=tf.int64),
+  #       eval_summary_dir=self.model_dir)
+  #   test_controller.evaluate(steps=5)
+  #
+  #   self.assertNotEmpty(
+  #       tf.io.gfile.listdir(os.path.join(self.model_dir, "dataset")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "loss", os.path.join(self.model_dir, "dataset")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "accuracy", os.path.join(self.model_dir, "dataset")))
+  #
+  #   self.assertNotEmpty(
+  #       tf.io.gfile.listdir(os.path.join(self.model_dir, "dataset2")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "loss", os.path.join(self.model_dir, "dataset2")))
+  #   self.assertNotEmpty(
+  #       summaries_with_matching_keyword(
+  #           "accuracy", os.path.join(self.model_dir, "dataset2")))
 
   def test_actions(self):
+    print("\n---------------------------test_actions()---------------------------")
+
     test_runner = TestRunner()
     checkpoint = tf.train.Checkpoint(
         model=test_runner.model, optimizer=test_runner.optimizer)
@@ -759,6 +772,7 @@ class ControllerTest(tf.test.TestCase, parameterized.TestCase):
         eval_summary_dir=os.path.join(self.model_dir, "summaries/eval"))
     test_controller.train_and_evaluate(
         train_steps=10, eval_steps=2, eval_interval=6)
+    print("----------------------------------------------------------------------\n")
 
     self.assertLen(train_output_recorder.outputs, 5)
     for output in train_output_recorder.outputs:
