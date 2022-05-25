@@ -114,10 +114,10 @@ class FPN(tf.keras.Model):
     inputs = self._build_input_pyramid(input_specs, min_level)
     backbone_max_level = min(int(max(inputs.keys())), max_level)
     
-    print("-------- FPN info --------")
-    print("min_level:", min_level)
-    print("max_level:", max_level)
-    print("backbone_max_level:", backbone_max_level)
+    # print("-------- FPN info --------")
+    # print("min_level:", min_level)
+    # print("max_level:", max_level)
+    # print("backbone_max_level:", backbone_max_level)
     # Build lateral connections.
     # 其实就是构建一个 1*1 conv
     # range(3, 5+1)，C3-C5 经过一个 1*1 conv 存于 feats_lateral={"3":C3}
@@ -168,7 +168,7 @@ class FPN(tf.keras.Model):
     # add for bpa buttom-up path
     # bpa = False
     if bpa:
-        print("bpa:True")
+        # print("bpa:True")
         # 取出 N3，它是由 P3 直接生成的
         # feats = {str(min_level): feats[str(min_level)]}
         for level in range(min_level+1, backbone_max_level+1):
@@ -202,7 +202,8 @@ class FPN(tf.keras.Model):
                 bias_regularizer=bias_regularizer)(
                 feats[str(level)])
     else:
-        print("bpa:False")
+        # print("bpa:False")
+        i = 0
 
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build coarser FPN levels introduced for RetinaNet.
@@ -230,8 +231,8 @@ class FPN(tf.keras.Model):
       feats[str(level)] = norm(
           axis=bn_axis, momentum=norm_momentum, epsilon=norm_epsilon)(
               feats[str(level)])
-    print("len(feats):", len(feats))
-    print("----------------------------------")
+    # print("len(feats):", len(feats))
+    # print("----------------------------------")
 
     self._output_specs = {
         str(level): feats[str(level)].get_shape()

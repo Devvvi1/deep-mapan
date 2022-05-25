@@ -213,15 +213,15 @@ class DetectionHead(tf.keras.layers.Layer):
         predictions.
     """
     roi_features = inputs
-    print("-------- Detection Head info --------")
+    # print("-------- Detection Head info --------")
     if afp:
-        print("afp:True")
-        print("len(roi_features):", len(roi_features))
+        # print("afp:True")
+        # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
         for i in range(len(roi_features)):
             x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
-        print("len(x):", len(x))
+        # print("len(x):", len(x))
         # ------------ Conv_head for each level -------------#
         for i in range(len(x)):
             x[i] = self._conv_head[i](x[i])
@@ -233,15 +233,15 @@ class DetectionHead(tf.keras.layers.Layer):
         x = x[0]
         # num = 1
     else:
-        print("afp:False")
+        # print("afp:False")
         _, num_rois, height, width, filters = roi_features.get_shape().as_list()
         x = tf.reshape(roi_features, [-1, height, width, filters])
         # num = 0
-    print("num_rois:", num_rois)
-    print("height & width:", height, width)
-    print("filters:", filters)
-    print("len(self._convs):", len(self._convs))
-    print("----------------------------------")
+    # print("num_rois:", num_rois)
+    # print("height & width:", height, width)
+    # print("filters:", filters)
+    # print("len(self._convs):", len(self._convs))
+    # print("----------------------------------")
     # 4 or 3 convs
     for conv, bn in zip(self._convs, self._conv_norms):
       x = conv(x)

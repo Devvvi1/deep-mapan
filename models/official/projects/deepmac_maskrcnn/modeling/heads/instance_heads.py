@@ -211,10 +211,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
          roi_width * upsample_factor], representing the mask predictions.
     """
     roi_features, roi_classes = inputs
-    print("-------- Deep Mask Head info --------")
+    # print("-------- Deep Mask Head info --------")
     if afp:
-        print("afp:True")
-        print("len(roi_features):", len(roi_features))
+        # print("afp:True")
+        # print("len(roi_features):", len(roi_features))
         features_shape = tf.shape(roi_features[0])
         batch_size, num_rois, height, width, filters = (
             features_shape[0], features_shape[1], features_shape[2],
@@ -225,9 +225,9 @@ class DeepMaskHead(tf.keras.layers.Layer):
         x = []
         for i in range(len(roi_features)):
             x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
-        print("len(x):", len(x))
+        # print("len(x):", len(x))
     else:
-        print("afp:False")
+        # print("afp:False")
         features_shape = tf.shape(roi_features)
         batch_size, num_rois, height, width, filters = (
             features_shape[0], features_shape[1], features_shape[2],
@@ -236,31 +236,32 @@ class DeepMaskHead(tf.keras.layers.Layer):
             batch_size = tf.shape(roi_features)[0]
         x = tf.reshape(roi_features, [-1, height, width, filters])
 
-    print("height & width of roi_features:", height, width)
-    print("filters:", filters)
+    # print("height & width of roi_features:", height, width)
+    # print("filters:", filters)
     
     x = self._call_convnet_variant(x, afp=afp)
     
     logits_ff = []
     if afp and isinstance(x, List):
-        print("FF:True")
+        # print("FF:True")
         x_ff = x[1]
         x = x[0]
         # x_ff 的 reshape 是否正确
         _, _, _, filters = x_ff.get_shape().as_list()
-        print("x_ff.shape:", tf.shape(x_ff))
-        print("x.shape:", tf.shape(x))
+        # print("x_ff.shape:", tf.shape(x_ff))
+        # print("x.shape:", tf.shape(x))
         # filters = tf.shape(x_ff)[-1]
-        print("x_ff.filters:", filters)
+        # print("x_ff.filters:", filters)
         x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
         x_ff = self._fcs(x_ff)
         x_ff = self._fc_norms(x_ff)
         x_ff = self._activation(x_ff)
         logits_ff = x_ff
         # 维度为 (2, 10, 28*28)
-        print("logits_ff.shape after fcs:", tf.shape(logits_ff))
+        # print("logits_ff.shape after fcs:", tf.shape(logits_ff))
     else:
-        print("FF:False")
+        # print("FF:False")
+        i = 0
 
     x = self._deconv(x)
     x = self._deconv_bn(x)
@@ -278,7 +279,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
           logits,
           [-1, num_rois, mask_height, mask_width,
            self._config_dict['num_classes']])
-    print("logits.shape before fusion:", tf.shape(logits))
+    # print("logits.shape before fusion:", tf.shape(logits))
     
     if isinstance(logits_ff, tf.Tensor) and afp:
         # 怎么将 logits_ff 先 reshape 成 1类，再复制为 num_class 类，最后再相加融合？
@@ -288,12 +289,13 @@ class DeepMaskHead(tf.keras.layers.Layer):
         logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.expand_dims(logits_ff, -1)
         logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
-        print("logits_ff.shape before fusion:", tf.shape(logits_ff))
+        # print("logits_ff.shape before fusion:", tf.shape(logits_ff))
         logits = tf.add(logits, logits_ff)
-        print("logits.shape after fusion:", tf.shape(logits))
-        print("fusion:YES")
+        # print("logits.shape after fusion:", tf.shape(logits))
+        # print("fusion:YES")
     else:
-        print("fusion:NO")
+        # print("fusion:NO")
+        i = 1
 
     batch_indices = tf.tile(
         tf.expand_dims(tf.range(batch_size), axis=1), [1, num_rois])
@@ -310,7 +312,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         axis=2)
     mask_outputs = tf.gather_nd(
         tf.transpose(logits, [0, 1, 4, 2, 3]), gather_indices)
-    print("-------------------------------------")
+    # print("-------------------------------------")
     return mask_outputs
 
   def _build_convnet_variant(self, input_shape):
@@ -434,7 +436,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
   def _call_AFP_convnet(self, x, afp):
       if afp:
           # ------------ Conv_head for each level -------------#
-          print("In AFP, len(x) is:", len(x))
+          # print("In AFP, len(x) is:", len(x))
           for i in range(len(x)):
               x[i] = self._conv_head[i](x[i])
               x[i] = self._conv_head_norms[i](x[i])
@@ -466,14 +468,14 @@ class DeepMaskHead(tf.keras.layers.Layer):
             y.append(x)
         x_fcn = y[-1]
         x_ff = y[1]
-        print("x_fcn.shape:", tf.shape(x_fcn))
-        print("x_ff.shape before conv fc:", tf.shape(x_ff))
+        # print("x_fcn.shape:", tf.shape(x_fcn))
+        # print("x_ff.shape before conv fc:", tf.shape(x_ff))
         # conv4_fc + conv5_fc
         for conv, bn in zip(self._conv_fc, self._conv_fc_norms):
             x_ff = conv(x_ff)
             x_ff = bn(x_ff)
             x_ff = self._activation(x_ff)
-        print("x_ff.shape after conv fc:", tf.shape(x_ff))
+        # print("x_ff.shape after conv fc:", tf.shape(x_ff))
         return [x_fcn, x_ff]
     elif variant == 'hourglass20':
       return self._hourglass(x, afp)[-1]

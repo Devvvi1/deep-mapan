@@ -79,6 +79,7 @@ def run_experiment(
           evaluate=('eval' in mode) or run_post_eval,
           checkpoint_exporter=maybe_create_best_ckpt_exporter(
               params, model_dir))
+  print("---------------------- Created trainer ----------------------")
 
   if trainer.checkpoint:
     if model_dir is None:
@@ -92,6 +93,7 @@ def run_experiment(
         init_fn=trainer.initialize)
   else:
     checkpoint_manager = None
+  print("---------------------- Finished Checkpoint Manager ----------------------")
 
   # ------------ 创建控制器去管理train和eval -------------#
   controller = controller_cls(
@@ -112,6 +114,7 @@ def run_experiment(
       train_actions=actions.get_train_actions(
           params, trainer, model_dir, checkpoint_manager=checkpoint_manager),
       eval_actions=actions.get_eval_actions(params, trainer, model_dir))
+  print("---------------------- Created controller ----------------------")
 
   if debug:
       print("---------------------- This is a debug ----------------------")
@@ -142,22 +145,26 @@ def run_experiment(
           timeout_fn=timeout_fn)
     else:
       raise NotImplementedError('The mode is not implemented: %s' % mode)
+  print("---------------------- Finished the job: %s ----------------------", mode)
 
   # 计算参数的数量
   num_params = train_utils.try_count_params(trainer.model)
   if num_params is not None:
     logging.info('Number of trainable params in model: %f Millions.',
                  num_params / 10.**6)
+  print("---------------------- Calculated the number of trainable params ----------------------")
 
   # 计算模型的FLOPs
   flops = train_utils.try_count_flops(trainer.model)
   if flops is not None:
     logging.info('FLOPs (multi-adds) in model: %f Billions.',
                  flops / 10.**9 / 2)
+  print("---------------------- Calculated the FLOPs (multi-adds) ----------------------")
 
   # 训练后是否运行一次后评估
   if run_post_eval:
     with distribution_strategy.scope():
+      print("---------------------- Evaluated after training ----------------------")
       return trainer.model, trainer.evaluate(
           tf.convert_to_tensor(params.trainer.validation_steps))
   else:

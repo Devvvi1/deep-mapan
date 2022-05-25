@@ -6,9 +6,10 @@ task:
   model:
     mask_head:
       class_agnostic: true
+      convnet_variant: 'fully-connected'
     use_gt_boxes_for_masks: true
-    bpa: false
-    afp: false
+    bpa: true
+    afp: true
     backbone:
       type: 'resnet'
       resnet:
