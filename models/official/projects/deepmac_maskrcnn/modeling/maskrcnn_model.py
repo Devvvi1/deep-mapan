@@ -123,12 +123,12 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
            training: Optional[bool] = None,
-           panet: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+           afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
     
     # ------------ 运行box branch -------------#
     model_outputs, intermediate_outputs = self._call_box_outputs(
         images=images, image_shape=image_shape, anchor_boxes=anchor_boxes,
-        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, panet=panet)
+        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, afp=afp)
     if not self._include_mask:
       return model_outputs
 
@@ -144,7 +144,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
         gt_classes=gt_classes,
         gt_boxes=gt_boxes,
         training=training,
-        panet=panet)
+        afp=afp)
     model_outputs.update(model_mask_outputs)
     return model_outputs
 
@@ -174,7 +174,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
       gt_classes: tf.Tensor,
       gt_boxes: tf.Tensor,
       training: Optional[bool] = None,
-      panet: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+      afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
 
     model_outputs = dict(model_box_outputs)
     # ------------------------------------ 训练 -------------------------------------#
@@ -223,7 +223,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     
     # mask_logits 就是 mask_head 生成的 raw_masks
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, roi_aligner_boxes, mask_head_classes, panet)
+        features, roi_aligner_boxes, mask_head_classes, afp)
 
     if training:
       model_outputs.update({

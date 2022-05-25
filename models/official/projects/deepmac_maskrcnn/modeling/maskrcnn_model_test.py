@@ -34,7 +34,7 @@ from official.vision.modeling.layers import roi_sampler
 from official.vision.ops import anchor
 
 
-def construct_model_and_anchors(image_size, use_gt_boxes_for_masks, panet):
+def construct_model_and_anchors(image_size, use_gt_boxes_for_masks, afp):
   num_classes = 3
   min_level = 2 # 3
   max_level = 6 # 4
@@ -56,7 +56,7 @@ def construct_model_and_anchors(image_size, use_gt_boxes_for_masks, panet):
       min_level=min_level,
       max_level=max_level,
       input_specs=backbone.output_specs,
-      panet=panet)
+      afp=afp)
   rpn_head = dense_prediction_heads.RPNHead(
       min_level=min_level,
       max_level=max_level,
@@ -100,13 +100,13 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
       (2, True, False, False),
       (3, True, False, True),
   )
-  def test_forward(self, num, use_gt_boxes_for_masks, training, panet):
+  def test_forward(self, num, use_gt_boxes_for_masks, training, afp):
     print("\n---------------------------Test forward of deep marc.{}---------------------------".format(num))
     image_size = (256, 256)
     images = np.random.rand(2, image_size[0], image_size[1], 3)
     image_shape = np.array([[224, 100], [100, 224]])
     model, anchor_boxes = construct_model_and_anchors(
-        image_size, use_gt_boxes_for_masks, panet)
+        image_size, use_gt_boxes_for_masks, afp)
 
     gt_boxes = tf.zeros((2, 16, 4), dtype=tf.float32)
     gt_masks = tf.zeros((2, 16, 32, 32))
@@ -118,7 +118,7 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
                     gt_classes,
                     gt_masks,
                     training=training,
-                    panet=panet)
+                    afp=afp)
 
     self.assertIn('rpn_boxes', results)
     self.assertIn('rpn_scores', results)
@@ -147,7 +147,7 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
     images = np.random.rand(1, image_size[0], image_size[1], 3).astype(
         np.float32)
     model, _ = construct_model_and_anchors(
-        image_size, use_gt_boxes_for_masks=True, panet=False)
+        image_size, use_gt_boxes_for_masks=True, afp=False)
 
     boxes = np.zeros((1, num_boxes, 4), dtype=np.float32)
     boxes[:, :, [2, 3]] = 1.0
