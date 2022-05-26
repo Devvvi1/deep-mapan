@@ -14,11 +14,12 @@ task:
       resnet:
         model_id: 50
   # init_checkpoint: 'gs://tf_model_garden/vision/resnet50_imagenet/ckpt-28080'
+  # init_checkpoint: null
   init_checkpoint: 'gs://deep-mapan-train/init_ckpt/resnet50_imagenet/ckpt-28080'
   train_data:
-    global_batch_size: 32
+    global_batch_size: 64
   validation_data:
-    global_batch_size: 8
+    global_batch_size: 32
 
 trainer:
   optimizer_config:
@@ -26,5 +27,5 @@ trainer:
       stepwise:
         boundaries: [50000, 65000]
       type: 'stepwise'
-  train_steps: 140000
-  validation_steps: 625  # 5000 / 32
+  train_steps: 70000
+  validation_steps: 156  # 5000 / 32
