@@ -127,7 +127,8 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     print("---------------------- in models.deep-maskrcnn_model.call() ----------------------")
     # ------------ 运行box branch -------------#
     print("images.shape:", tf.shape(images))
-    
+    a, b, c, d = images.get_shape().as_list()
+    print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
     model_outputs, intermediate_outputs = self._call_box_outputs(
         images=images, image_shape=image_shape, anchor_boxes=anchor_boxes,
         gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, afp=afp)
