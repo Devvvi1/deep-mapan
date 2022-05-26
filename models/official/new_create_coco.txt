@@ -34,4 +34,4 @@ python3 official/vision/data/create_coco_tf_record.py --logtostderr \
       --object_annotations_file="${TRAIN_ANNOTATIONS_FILE}" \
       --caption_annotations_file="${CAPTION_ANNOTATIONS_FILE}" \
       --output_file_prefix="${OUTPUT_PATH}" \
-      --num_shards=100
+      --num_shards=256
