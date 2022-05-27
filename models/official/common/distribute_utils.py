@@ -84,8 +84,8 @@ def tpu_initialize(tpu_address):
   """
   print("tpu_address:", tpu_address)
   # cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu=tpu_address)
-  cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
-  # cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
+  # cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='local')
+  cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
   print("----------------- tf.distribute.cluster_resolver.TPUClusterResolver() -----------------")
 
   if tpu_address not in ("", "local"):
