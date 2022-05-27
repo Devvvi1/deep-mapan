@@ -58,7 +58,7 @@ def deep_mask_head_rcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
       task=DeepMaskHeadRCNNTask(
           init_checkpoint='gs://deep-mapan-train/init_ckpt/resnet50_imagenet/ckpt-28080',
           init_checkpoint_modules='backbone',
-          annotation_file="gs://deep-mapan-train/tf_data/coco/instances_val2017.json",
+          annotation_file='gs://deep-mapan-train/tf_data/coco/instances_val2017.json',
           # annotation_file=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
           #                              'instances_val2017.json'),
           model=DeepMaskHeadRCNN(
