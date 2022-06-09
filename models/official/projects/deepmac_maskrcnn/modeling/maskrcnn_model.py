@@ -11,9 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------ 1 -------------------------------------#
-
-# ------------ 2 -------------#
 
 """Mask R-CNN model."""
 
@@ -25,6 +22,7 @@ from absl import logging
 import tensorflow as tf
 
 from official.vision.modeling import maskrcnn_model
+
 
 def resize_as(source, size):
 
@@ -122,20 +120,14 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
            gt_boxes: Optional[tf.Tensor] = None,
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
-           training: Optional[bool] = None,
-           afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
-    print("---------------------- in models.deep-maskrcnn_model.call() ----------------------")
-    # ------------ 运行box branch -------------#
-    print("images.shape:", tf.shape(images))
-    a, b, c, d = images.get_shape().as_list()
-    print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
+           training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+
     model_outputs, intermediate_outputs = self._call_box_outputs(
         images=images, image_shape=image_shape, anchor_boxes=anchor_boxes,
-        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, afp=afp)
+        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training)
     if not self._include_mask:
       return model_outputs
 
-    # ------------ 运行mask branch -------------#
     model_mask_outputs = self._call_mask_outputs(
         model_box_outputs=model_outputs,
         features=model_outputs['decoder_features'],
@@ -146,10 +138,8 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
         gt_masks=gt_masks,
         gt_classes=gt_classes,
         gt_boxes=gt_boxes,
-        training=training,
-        afp=afp)
+        training=training)
     model_outputs.update(model_mask_outputs)
-    print("---------------------- out models.deep-maskrcnn_model.call() ----------------------")
     return model_outputs
 
   def call_images_and_boxes(self, images, boxes):
@@ -177,20 +167,15 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
       gt_masks: tf.Tensor,
       gt_classes: tf.Tensor,
       gt_boxes: tf.Tensor,
-      training: Optional[bool] = None,
-      afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+      training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
 
     model_outputs = dict(model_box_outputs)
-    # ------------------------------------ 训练 -------------------------------------#
     if training:
-      # ------------ GT-only -------------#
       if self._config_dict['use_gt_boxes_for_masks']:
-        # 计算mask大小
         mask_size = (
             self.mask_roi_aligner._config_dict['crop_size'] *  # pylint:disable=protected-access
             self.mask_head._config_dict['upsample_factor']  # pylint:disable=protected-access
         )
-        # 重设mask大小
         gt_masks = resize_as(source=gt_masks, size=mask_size)
 
         logging.info('Using GT class and mask targets.')
@@ -198,19 +183,16 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
             'mask_class_targets': gt_classes,
             'mask_targets': gt_masks,
         })
-      # ------------ Default -------------#
       else:
-        # 采样生成roi_masks，默认正负1:3
         rois, roi_classes, roi_masks = self.mask_sampler(
             current_rois, matched_gt_boxes, matched_gt_classes,
             matched_gt_indices, gt_masks)
-        # ？？？
         roi_masks = tf.stop_gradient(roi_masks)
         model_outputs.update({
             'mask_class_targets': roi_classes,
             'mask_targets': roi_masks,
         })
-    # ------------------------------------ 推理 -------------------------------------#
+
     else:
       rois = model_outputs['detection_boxes']
       roi_classes = model_outputs['detection_classes']
@@ -224,10 +206,9 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     else:
       roi_aligner_boxes = rois
       mask_head_classes = roi_classes
-    
-    # mask_logits 就是 mask_head 生成的 raw_masks
+
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, roi_aligner_boxes, mask_head_classes, afp)
+        features, roi_aligner_boxes, mask_head_classes)
 
     if training:
       model_outputs.update({

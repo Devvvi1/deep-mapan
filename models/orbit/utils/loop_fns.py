@@ -22,11 +22,13 @@ import tensorflow as tf
 
 def create_loop_fn(step_fn):
   """Creates a loop function driven by a Python `while` loop.
+
   Args:
     step_fn: A function taking a nested structure of `tf.data.Iterator` or
       `DistributedIterator`. There are no constraints on the return value of the
       function (except that it must be compatible with any `reduce_fn` provided
       to the returned `loop_fn`).
+
   Returns:
     A loop function taking required `iterator` and `num_steps` parameters, as
     well as optional `state` and `reduce_fn` parameters for accumulating state
@@ -36,16 +38,20 @@ def create_loop_fn(step_fn):
 
   def loop_fn(iterator, num_steps, state=None, reduce_fn=None):
     """Makes `num_steps` calls to `step_fn(iterator)`.
+
     Additionally, state may be accumulated across iterations of the loop.
     Conceptually, state accumulation is handled roughly as follows:
+
         for _ in range(num_steps):
           step_outputs  = step_fn(iterator)
           state = reduce_fn(state, step_outputs)
         return state
+
     However, the implementation is slightly more complicated in order to support
     looping until the iterator is exhausted (when `num_steps == -1`) and to
     properly catch exceptions when running under async remote eager (as is the
     case in TPU training setups involving separate coordinator/worker machines).
+
     Args:
       iterator: A nested structure of `tf.data.Iterator` or
         `DistributedIterator`.
@@ -55,6 +61,7 @@ def create_loop_fn(step_fn):
       reduce_fn: A callable taking two inputs, `state` and `value`, where
         `state` is the previous output from `reduce_fn`, and `value` is the
         output from `step_fn`.
+
     Returns:
       The final state returned by `reduce_fn`, or `None` if `state` and
       `reduce_fn` are not provided.
@@ -80,9 +87,11 @@ def create_loop_fn(step_fn):
 
 def create_tf_while_loop_fn(step_fn):
   """Creates a loop function compatible with TF's AutoGraph loop conversion.
+
   Args:
     step_fn: A function taking a nested structure of `tf.data.Iterator` or
       `DistributedIterator`. Currently, any return values are ignored.
+
   Returns:
     A loop function taking required `iterator` and `num_steps` parameters. If
     called inside a `tf.function`, the loop will be converted by AutoGraph into
@@ -92,6 +101,7 @@ def create_tf_while_loop_fn(step_fn):
 
   def loop_fn(iterator, num_steps):
     """Makes `num_steps` calls to `step_fn(iterator)`.
+
     Args:
       iterator: A nested structure of `tf.data.Iterator` or
         `DistributedIterator`.
@@ -114,12 +124,15 @@ def create_tf_while_loop_fn(step_fn):
 
 def create_tf_while_loop_fn_with_state(step_fn):
   """Creates a TF while loop function with state.
+
   This function is similar to `create_tf_while_loop_fn`, but allowing a `state`
   to be accumulated over multiple iterations of the loop. Note that the
   structure of the `state` cannot be changed across iterations.
+
   Args:
     step_fn: A function taking a nested structure of `tf.data.Iterator` or
       `DistributedIterator`. Currently, any return values are ignored.
+
   Returns:
     A loop function taking required `iterator`, `num_steps`, `state` and
     `reduce_fn` parameters. If called inside a `tf.function`, the loop will be
@@ -129,6 +142,7 @@ def create_tf_while_loop_fn_with_state(step_fn):
 
   def loop_fn_with_state(iterator, num_steps, state, reduce_fn):
     """Makes `num_steps` calls to `step_fn(iterator)`.
+
     Args:
       iterator: A nested structure of `tf.data.Iterator` or
         `DistributedIterator`.
@@ -138,6 +152,7 @@ def create_tf_while_loop_fn_with_state(step_fn):
       reduce_fn: A callable taking two inputs, `state` and `value`, where
         `state` is the previous output from `reduce_fn`, and `value` is the
         output from `step_fn`.
+
     Returns:
       The final state returned by `reduce_fn`.
     """
@@ -179,6 +194,7 @@ def create_tf_while_loop_fn_with_state(step_fn):
 
 class LoopFnWithSummaries(tpu_summaries.OptionalSummariesFunction):
   """Implements a two-program approach for optimizing summaries on TPU.
+
   This version works with the result of `create_tf_while_loop_fn`.
   """
 
@@ -188,4 +204,4 @@ class LoopFnWithSummaries(tpu_summaries.OptionalSummariesFunction):
       num_steps -= 1
     if num_steps >= 1:
       output = self.without_summaries(iterator, num_steps)
-    return
+    return output

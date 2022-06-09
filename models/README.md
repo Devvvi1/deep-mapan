@@ -3,7 +3,8 @@
 </div>
 
 [![Python](https://img.shields.io/pypi/pyversions/tensorflow.svg?style=plastic)](https://badge.fury.io/py/tensorflow)
-[![PyPI](https://badge.fury.io/py/tensorflow.svg)](https://badge.fury.io/py/tensorflow)
+[![tf-models-official PyPI](https://badge.fury.io/py/tf-models-official.svg)](https://badge.fury.io/py/tf-models-official)
+
 
 # Welcome to the Model Garden for TensorFlow
 
@@ -32,23 +33,20 @@ To install the current release of tensorflow-models, please follow any one of th
 
 <details>
 
-**tf-models-official** is the stable Model Garden package.
-pip will install all models and dependencies automatically.
+**tf-models-official** is the stable Model Garden package. Please check out the [releases](https://github.com/tensorflow/models/releases) to see what are available modules.
+
+pip3 will install all models and dependencies automatically.
 
 ```shell
 pip3 install tf-models-official
 ```
 
-If you are using nlp packages, please also install **tensorflow-text**:
-
-```shell
-pip3 install tensorflow-text
-```
-
-Please check out our [example](https://github.com/tensorflow/text/blob/master/docs/tutorials/fine_tune_bert.ipynb)
+Please check out our examples:
+  - [basic library import](https://github.com/tensorflow/models/blob/master/tensorflow_models/tensorflow_models_pypi.ipynb)
+  - [nlp model building](https://github.com/tensorflow/models/blob/master/official/colab/nlp/nlp_modeling_library_intro.ipynb)
 to learn how to use a PIP package.
 
-Note that **tf-models-official** may not include the latest changes in this
+Note that **tf-models-official** may not include the latest changes in the master branch of this
 github repo. To include latest changes, you may install **tf-models-nightly**,
 which is the nightly Model Garden package created daily automatically.
 
@@ -56,11 +54,6 @@ which is the nightly Model Garden package created daily automatically.
 pip3 install tf-models-nightly
 ```
 
-If you are using `nlp` packages, please also install tensorflow-text-nightly
-
-```shell
-pip3 install tensorflow-text-nightly
-```
 </details>
 
 

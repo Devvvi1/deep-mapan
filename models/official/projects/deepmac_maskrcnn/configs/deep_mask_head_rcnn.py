@@ -48,34 +48,31 @@ class DeepMaskHeadRCNNTask(maskrcnn_config.MaskRCNNTask):
 @exp_factory.register_config_factory('deep_mask_head_rcnn_resnetfpn_coco')
 def deep_mask_head_rcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
   """COCO object detection with Mask R-CNN with deep mask heads."""
-  global_batch_size = 32 # 64
+  global_batch_size = 64
   steps_per_epoch = int(retinanet_config.COCO_TRAIN_EXAMPLES /
                         global_batch_size)
   coco_val_samples = 5000
 
   config = cfg.ExperimentConfig(
-      runtime=cfg.RuntimeConfig(mixed_precision_dtype='bfloat16', distribution_strategy='tpu'),
+      runtime=cfg.RuntimeConfig(mixed_precision_dtype='bfloat16'),
       task=DeepMaskHeadRCNNTask(
-          init_checkpoint='gs://deep-mapan-train/init_ckpt/resnet50_imagenet/ckpt-28080',
+          init_checkpoint='gs://cloud-tpu-checkpoints/vision-2.0/resnet50_imagenet/ckpt-28080',
           init_checkpoint_modules='backbone',
-          annotation_file='gs://deep-mapan-train/tf_data/coco/instances_val2017.json',
-          # annotation_file=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
-          #                              'instances_val2017.json'),
+          annotation_file=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
+                                       'instances_val2017.json'),
           model=DeepMaskHeadRCNN(
               num_classes=91, input_size=[1024, 1024, 3], include_mask=True),  # pytype: disable=wrong-keyword-args
           losses=maskrcnn_config.Losses(l2_weight_decay=0.00004),
           train_data=maskrcnn_config.DataConfig(
-              input_path='gs://deep-mapan-train/tf_data/coco/train/train2017-?????-of-00256.tfrecord',
-              # input_path=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
-              #                         'train*'),
+              input_path=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
+                                      'train*'),
               is_training=True,
               global_batch_size=global_batch_size,
               parser=maskrcnn_config.Parser(
                   aug_rand_hflip=True, aug_scale_min=0.8, aug_scale_max=1.25)),
           validation_data=maskrcnn_config.DataConfig(
-              input_path='gs://deep-mapan-train/tf_data/coco/val/val2017-?????-of-00032.tfrecord',
-              # input_path=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
-              #                         'val*'),
+              input_path=os.path.join(maskrcnn_config.COCO_INPUT_PATH_BASE,
+                                      'val*'),
               is_training=False,
               global_batch_size=8)),  # pytype: disable=wrong-keyword-args
       trainer=cfg.TrainerConfig(

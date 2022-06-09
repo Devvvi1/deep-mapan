@@ -11,14 +11,11 @@ task:
     mask_roi_aligner:
       crop_size: 32
     use_gt_boxes_for_masks: true
-    bpa: true
-    afp: true
     backbone:
       type: 'resnet'
       resnet:
         model_id: 50
-  # init_checkpoint: 'gs://tf_model_garden/vision/resnet50_imagenet/ckpt-28080'
-  init_checkpoint: 'gs://deep-mapan-train/init_ckpt/resnet50_imagenet/ckpt-28080'
+  init_checkpoint: 'gs://tf_model_garden/vision/resnet50_imagenet/ckpt-28080'
   train_data:
     global_batch_size: 64
   validation_data:

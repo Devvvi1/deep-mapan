@@ -141,12 +141,11 @@ class MaskRCNNModel(tf.keras.Model):
            gt_boxes: Optional[tf.Tensor] = None,
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
-           training: Optional[bool] = None,
-           afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+           training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
 
     model_outputs, intermediate_outputs = self._call_box_outputs(
         images=images, image_shape=image_shape, anchor_boxes=anchor_boxes,
-        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, afp=afp)
+        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training)
     if not self._include_mask:
       return model_outputs
 
@@ -158,8 +157,7 @@ class MaskRCNNModel(tf.keras.Model):
         matched_gt_boxes=intermediate_outputs['matched_gt_boxes'],
         matched_gt_classes=intermediate_outputs['matched_gt_classes'],
         gt_masks=gt_masks,
-        training=training,  
-        afp=afp)
+        training=training)
     model_outputs.update(model_mask_outputs)
     return model_outputs
 
@@ -178,17 +176,16 @@ class MaskRCNNModel(tf.keras.Model):
       anchor_boxes: Optional[Mapping[str, tf.Tensor]] = None,
       gt_boxes: Optional[tf.Tensor] = None,
       gt_classes: Optional[tf.Tensor] = None,
-      training: Optional[bool] = None,  
-      afp: Optional[bool] = None) -> Tuple[
+      training: Optional[bool] = None) -> Tuple[
           Mapping[str, tf.Tensor], Mapping[str, tf.Tensor]]:
     """Implementation of the Faster-RCNN logic for boxes."""
     model_outputs = {}
 
-    # ------------------ 1.Feature extraction -------------------#
+    # Feature extraction.
     (backbone_features,
      decoder_features) = self._get_backbone_and_decoder_features(images)
 
-    # ------------------ 2.Region proposal network -------------------#
+    # Region proposal network.
     rpn_scores, rpn_boxes = self.rpn_head(decoder_features)
 
     model_outputs.update({
@@ -197,8 +194,7 @@ class MaskRCNNModel(tf.keras.Model):
         'rpn_boxes': rpn_boxes,
         'rpn_scores': rpn_scores
     })
-    
-    # ------------------ 3.Anchor boxes -------------------#
+
     # Generate anchor boxes for this batch if not provided.
     if anchor_boxes is None:
       _, image_height, image_width, _ = images.get_shape().as_list()
@@ -214,17 +210,15 @@ class MaskRCNNModel(tf.keras.Model):
             tf.expand_dims(anchor_boxes[l], axis=0),
             [tf.shape(images)[0], 1, 1, 1])
 
-    # ------------------ 4.Generate RoIs -------------------#
+    # Generate RoIs.
     current_rois, _ = self.roi_generator(rpn_boxes, rpn_scores, anchor_boxes,
                                          image_shape, training)
-    
-    # ------------------ 5.Run fast-rcnn head -------------------#
+
     next_rois = current_rois
     all_class_outputs = []
     for cascade_num in range(len(self.roi_sampler)):
       # In cascade RCNN we want the higher layers to have different regression
       # weights as the predicted deltas become smaller and smaller.
-      # 取第一组回归权重 [10.0, 10.0, 5.0, 5.0]
       regression_weights = self._cascade_layer_to_weights[cascade_num]
       current_rois = next_rois
 
@@ -236,7 +230,6 @@ class MaskRCNNModel(tf.keras.Model):
            gt_boxes=gt_boxes,
            gt_classes=gt_classes,
            training=training,
-           afp=afp,
            model_outputs=model_outputs,
            cascade_num=cascade_num,
            regression_weights=regression_weights)
@@ -250,8 +243,7 @@ class MaskRCNNModel(tf.keras.Model):
             weights=regression_weights)
         next_rois = box_ops.clip_boxes(next_rois,
                                        tf.expand_dims(image_shape, axis=1))
-    
-    # ------------------ 6.Run detection if not training -------------------#
+
     if not training:
       if self._config_dict['cascade_class_ensemble']:
         class_outputs = tf.add_n(all_class_outputs) / len(all_class_outputs)
@@ -297,8 +289,7 @@ class MaskRCNNModel(tf.keras.Model):
       matched_gt_boxes: tf.Tensor,
       matched_gt_classes: tf.Tensor,
       gt_masks: tf.Tensor,
-      training: Optional[bool] = None,
-      afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+      training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
     """Implementation of Mask-RCNN mask prediction logic."""
 
     model_outputs = dict(model_box_outputs)
@@ -317,7 +308,7 @@ class MaskRCNNModel(tf.keras.Model):
       roi_classes = model_outputs['detection_classes']
 
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, current_rois, roi_classes, afp)
+        features, current_rois, roi_classes)
 
     if training:
       model_outputs.update({
@@ -329,7 +320,7 @@ class MaskRCNNModel(tf.keras.Model):
       })
     return model_outputs
 
-  def _run_frcnn_head(self, features, rois, gt_boxes, gt_classes, training, afp,
+  def _run_frcnn_head(self, features, rois, gt_boxes, gt_classes, training,
                       model_outputs, cascade_num, regression_weights):
     """Runs the frcnn head that does both class and box prediction.
 
@@ -368,25 +359,18 @@ class MaskRCNNModel(tf.keras.Model):
                                                                 None)
     if training and gt_boxes is not None:
       rois = tf.stop_gradient(rois)
-      
-      # 1.Roi sample:完成 roi 采样，保持正负比例为 1:3，并相应的 matched info
+
       current_roi_sampler = self.roi_sampler[cascade_num]
       rois, matched_gt_boxes, matched_gt_classes, matched_gt_indices = (
           current_roi_sampler(rois, gt_boxes, gt_classes))
-      
-      # 2.Create bounding box training targets:即 box2loc，box_targets 就是 deltas 用于计算 box loss
-      # Regression_weights is the bounding box refinement standard deviation for RPN
+      # Create bounding box training targets.
       box_targets = box_ops.encode_boxes(
           matched_gt_boxes, rois, weights=regression_weights)
       # If the target is background, the box target is set to all 0s.
-      # 上面的计算包含了 positive roi 和 negative roi，只需要前者的 deltas，故后者相应的值全部置0
       box_targets = tf.where(
           tf.tile(
               tf.expand_dims(tf.equal(matched_gt_classes, 0), axis=-1),
               [1, 1, 4]), tf.zeros_like(box_targets), box_targets)
-      # 3.更新，主要用于计算 loss
-      # 1-3 相当于原 mrcnn 中的 DetectionTargetLayer，接收来自 RPN 的 proposals
-      # 然后采样并生成用于训练 head 网络的数量固定的 roi
       model_outputs.update({
           'class_targets_{}'.format(cascade_num)
           if cascade_num else 'class_targets':
@@ -396,12 +380,12 @@ class MaskRCNNModel(tf.keras.Model):
               box_targets,
       })
 
-    # 4.Get roi features.
-    roi_features = self.roi_aligner(features, rois, afp=afp)
+    # Get roi features.
+    roi_features = self.roi_aligner(features, rois)
 
-    # 5.Run frcnn head to get class and bbox predictions.
+    # Run frcnn head to get class and bbox predictions.
     current_detection_head = self.detection_head[cascade_num]
-    class_outputs, box_outputs = current_detection_head(roi_features, afp=afp)
+    class_outputs, box_outputs = current_detection_head(roi_features)
 
     model_outputs.update({
         'class_outputs_{}'.format(cascade_num)
@@ -413,12 +397,12 @@ class MaskRCNNModel(tf.keras.Model):
     return (class_outputs, box_outputs, model_outputs, matched_gt_boxes,
             matched_gt_classes, matched_gt_indices, rois)
 
-  def _features_to_mask_outputs(self, features, rois, roi_classes, afp):
+  def _features_to_mask_outputs(self, features, rois, roi_classes):
     # Mask RoI align.
-    mask_roi_features = self.mask_roi_aligner(features, rois, afp=afp)
+    mask_roi_features = self.mask_roi_aligner(features, rois)
 
     # Mask head.
-    raw_masks = self.mask_head([mask_roi_features, roi_classes], afp=afp)
+    raw_masks = self.mask_head([mask_roi_features, roi_classes])
 
     return raw_masks, tf.nn.sigmoid(raw_masks)
 

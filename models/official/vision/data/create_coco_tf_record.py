@@ -44,7 +44,7 @@ from official.vision.data import tfrecord_lib
 
 
 flags.DEFINE_boolean(
-    'include_masks', False, 'Whether to include instance segmentations masks '
+    'include_masks', True, 'Whether to include instance segmentations masks '
     '(PNG encoded) in the result. default: False.')
 flags.DEFINE_multi_string('image_dir', '', 'Directory containing images.')
 flags.DEFINE_string(
@@ -353,7 +353,7 @@ def create_tf_example(image,
   return example, num_annotations_skipped
 
 
-def _load_object_annotations(object_annotations_file):
+def _load_object_annotations(object_annotations_file, image_dirs):
   """Loads object annotation JSON file."""
   with tf.io.gfile.GFile(object_annotations_file, 'r') as fid:
     obj_annotations = json.load(fid)
@@ -369,10 +369,39 @@ def _load_object_annotations(object_annotations_file):
     img_to_obj_annotation[image_id].append(annotation)
 
   missing_annotation_count = 0
+  print("num of images:", len(images))
+  image_file_names = []
   for image in images:
     image_id = image['id']
+    image_file_name = image['file_name']
     if image_id not in img_to_obj_annotation:
+      print("id of image missing bboxes:", image_id)
+      print("filename of image missing bboxes:", image_file_name)
+      image_file_names.append(image_file_name)
       missing_annotation_count += 1
+
+  # 根据丢失bboxes的image file_name，生成包含移动GCS中对应图像的指令的.sh脚本
+  ROOT_DIR = "./official/vision/data"
+  OLD_PATH = str(image_dirs) + "/"
+  NEW_PATH = OLD_PATH.replace('train2017', 'train2017_bbox').replace('val2017', 'val2017_bbox')
+  print("OLD_PATH is ", OLD_PATH)
+  print("NEW_PATH is ", NEW_PATH)
+
+  TXT_PATH = os.path.join(ROOT_DIR, "images_missing_bbox.sh")
+  f = open(TXT_PATH, 'w')
+  f.write("export NEW_PATH=${" + NEW_PATH + "}" + "\n")
+  NEW_PATH = "${NEW_PATH}"
+  for j in image_file_names:
+      j = str(j)
+      j = j.replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n')
+      print(j)
+      if len(j) < 12:
+          j = j.zfill(12)
+      name = j
+      command = "gsutil mv " + OLD_PATH + name + " " + NEW_PATH
+      print(command)
+      f.write(command + "\n")
+  f.close()
 
   logging.info('%d images are missing bboxes.', missing_annotation_count)
 
@@ -445,6 +474,7 @@ def generate_annotations(images, image_dirs,
                          include_panoptic_masks=False,
                          include_masks=False):
   """Generator for COCO annotations."""
+
   for image in images:
     object_annotation = (img_to_obj_annotation.get(image['id'], None) if
                          img_to_obj_annotation else None)
@@ -494,6 +524,7 @@ def _create_tf_record_from_coco_annotations(images_info_file,
   logging.info('writing to output path: %s', output_path)
 
   images = _load_images_info(images_info_file)
+  print("num of images:", len(images))
 
   img_to_obj_annotation = None
   img_to_caption_annotation = None
@@ -502,7 +533,7 @@ def _create_tf_record_from_coco_annotations(images_info_file,
   is_category_thing = None
   if object_annotations_file:
     img_to_obj_annotation, id_to_name_map = (
-        _load_object_annotations(object_annotations_file))
+        _load_object_annotations(object_annotations_file, image_dirs))
   if caption_annotations_file:
     img_to_caption_annotation = (
         _load_caption_annotations(caption_annotations_file))
@@ -555,6 +586,6 @@ def main(_):
                                           FLAGS.include_panoptic_masks,
                                           FLAGS.include_masks)
 
-
+# gsutil mv gs://mapan/tf_data/coco/val/val-00001-of-00032.tfrecord gs://mapan/tf_data/coco/val/
 if __name__ == '__main__':
   app.run(main)

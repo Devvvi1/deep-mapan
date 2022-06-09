@@ -20,12 +20,18 @@ import tensorflow as tf
 import tensorflow_model_optimization as tfmot
 from official.projects.qat.vision.configs import common
 from official.projects.qat.vision.modeling import segmentation_model as qat_segmentation_model
+from official.projects.qat.vision.modeling.heads import dense_prediction_heads as dense_prediction_heads_qat
+from official.projects.qat.vision.modeling.layers import nn_layers as qat_nn_layers
 from official.projects.qat.vision.n_bit import schemes as n_bit_schemes
+from official.projects.qat.vision.quantization import configs as qat_configs
+from official.projects.qat.vision.quantization import helper
 from official.projects.qat.vision.quantization import schemes
 from official.vision import configs
 from official.vision.modeling import classification_model
 from official.vision.modeling import retinanet_model
 from official.vision.modeling.decoders import aspp
+from official.vision.modeling.decoders import fpn
+from official.vision.modeling.heads import dense_prediction_heads
 from official.vision.modeling.heads import segmentation_heads
 from official.vision.modeling.layers import nn_layers
 
@@ -117,6 +123,16 @@ def build_qat_classification_model(
   return optimized_model
 
 
+def _clone_function_for_fpn(layer):
+  if isinstance(layer, (
+      tf.keras.layers.BatchNormalization,
+      tf.keras.layers.experimental.SyncBatchNormalization)):
+    return tfmot.quantization.keras.quantize_annotate_layer(
+        qat_nn_layers.BatchNormalizationWrapper(layer),
+        qat_configs.Default8BitOutputQuantizeConfig())
+  return layer
+
+
 def build_qat_retinanet(
     model: tf.keras.Model, quantization: common.Quantization,
     model_config: configs.retinanet.RetinaNet) -> tf.keras.Model:
@@ -141,6 +157,7 @@ def build_qat_retinanet(
 
   scope_dict = {
       'L2': tf.keras.regularizers.l2,
+      'BatchNormalizationWrapper': qat_nn_layers.BatchNormalizationWrapper,
   }
   with tfmot.quantization.keras.quantize_scope(scope_dict):
     annotated_backbone = tfmot.quantization.keras.quantize_annotate_model(
@@ -148,16 +165,41 @@ def build_qat_retinanet(
     optimized_backbone = tfmot.quantization.keras.quantize_apply(
         annotated_backbone,
         scheme=schemes.Default8BitQuantizeScheme())
+    decoder = model.decoder
+    if quantization.quantize_detection_decoder:
+      if not isinstance(decoder, fpn.FPN):
+        raise ValueError('Currently only supports FPN.')
+
+      decoder = tf.keras.models.clone_model(
+          decoder,
+          clone_function=_clone_function_for_fpn,
+      )
+      decoder = tfmot.quantization.keras.quantize_model(decoder)
+
+    head = model.head
+    if quantization.quantize_detection_head:
+      if not isinstance(head, dense_prediction_heads.RetinaNetHead):
+        raise ValueError('Currently only supports RetinaNetHead.')
+      head = (
+          dense_prediction_heads_qat.RetinaNetHeadQuantized.from_config(
+              head.get_config()))
+
   optimized_model = retinanet_model.RetinaNetModel(
       optimized_backbone,
-      model.decoder,
-      model.head,
+      decoder,
+      head,
       model.detection_generator,
       min_level=model_config.min_level,
       max_level=model_config.max_level,
       num_scales=model_config.anchor.num_scales,
       aspect_ratios=model_config.anchor.aspect_ratios,
       anchor_size=model_config.anchor.anchor_size)
+
+  if quantization.quantize_detection_head:
+    # Call the model with dummy input to build the head part.
+    dummpy_input = tf.zeros([1] + model_config.input_size)
+    optimized_model(dummpy_input, training=True)
+    helper.copy_original_weights(model.head, optimized_model.head)
   return optimized_model
 
 

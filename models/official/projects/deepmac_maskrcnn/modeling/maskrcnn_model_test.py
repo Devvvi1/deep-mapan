@@ -34,12 +34,12 @@ from official.vision.modeling.layers import roi_sampler
 from official.vision.ops import anchor
 
 
-def construct_model_and_anchors(image_size, use_gt_boxes_for_masks, afp):
+def construct_model_and_anchors(image_size, use_gt_boxes_for_masks):
   num_classes = 3
-  min_level = 2 # 3
-  max_level = 6 # 4
+  min_level = 3
+  max_level = 4
   num_scales = 3
-  aspect_ratios = [0.5, 1.0, 2.0] # [1.0]
+  aspect_ratios = [1.0]
 
   anchor_boxes = anchor.Anchor(
       min_level=min_level,
@@ -55,8 +55,7 @@ def construct_model_and_anchors(image_size, use_gt_boxes_for_masks, afp):
   decoder = fpn.FPN(
       min_level=min_level,
       max_level=max_level,
-      input_specs=backbone.output_specs,
-      afp=afp)
+      input_specs=backbone.output_specs)
   rpn_head = dense_prediction_heads.RPNHead(
       min_level=min_level,
       max_level=max_level,
@@ -93,20 +92,17 @@ def construct_model_and_anchors(image_size, use_gt_boxes_for_masks, afp):
 class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
 
   @parameterized.parameters(
-      # (False, False, False),
-      # (False, True, False),
-      # (True, False, False),
-      (1, True, True, False),
-      (2, True, False, False),
-      (3, True, False, True),
+      (False, False,),
+      (False, True,),
+      (True, False,),
+      (True, True,),
   )
-  def test_forward(self, num, use_gt_boxes_for_masks, training, afp):
-    print("\n---------------------------Test forward of deep marc.{}---------------------------".format(num))
+  def test_forward(self, use_gt_boxes_for_masks, training):
     image_size = (256, 256)
     images = np.random.rand(2, image_size[0], image_size[1], 3)
     image_shape = np.array([[224, 100], [100, 224]])
     model, anchor_boxes = construct_model_and_anchors(
-        image_size, use_gt_boxes_for_masks, afp)
+        image_size, use_gt_boxes_for_masks)
 
     gt_boxes = tf.zeros((2, 16, 4), dtype=tf.float32)
     gt_masks = tf.zeros((2, 16, 32, 32))
@@ -117,8 +113,7 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
                     gt_boxes,
                     gt_classes,
                     gt_masks,
-                    training=training,
-                    afp=afp)
+                    training=training)
 
     self.assertIn('rpn_boxes', results)
     self.assertIn('rpn_scores', results)
@@ -136,25 +131,22 @@ class MaskRCNNModelTest(parameterized.TestCase, tf.test.TestCase):
       self.assertIn('detection_classes', results)
       self.assertIn('num_detections', results)
       self.assertIn('detection_masks', results)
-    print("------------------------------------------------------------------------------------\n")
 
   @parameterized.parameters(
       [(1, 5), (1, 10), (1, 15), (2, 5), (2, 10), (2, 15)]
   )
-  def ttest_image_and_boxes(self, batch_size, num_boxes):
-    print("\n---------------------------Test image & box---------------------------")
+  def test_image_and_boxes(self, batch_size, num_boxes):
     image_size = (640, 640)
     images = np.random.rand(1, image_size[0], image_size[1], 3).astype(
         np.float32)
     model, _ = construct_model_and_anchors(
-        image_size, use_gt_boxes_for_masks=True, afp=False)
+        image_size, use_gt_boxes_for_masks=True)
 
     boxes = np.zeros((1, num_boxes, 4), dtype=np.float32)
     boxes[:, :, [2, 3]] = 1.0
     boxes = tf.constant(boxes)
     results = model.call_images_and_boxes(images, boxes)
     self.assertIn('detection_masks', results)
-    print("------------------------------------------------------------------------------------\n")
 
 
 if __name__ == '__main__':

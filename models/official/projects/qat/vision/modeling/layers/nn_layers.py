@@ -15,7 +15,7 @@
 """Contains common building blocks for neural networks."""
 
 import enum
-from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union, Any
 
 import tensorflow as tf
 
@@ -144,7 +144,7 @@ class SqueezeExcitationQuantized(
         strides=1,
         padding='same',
         use_bias=True,
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         bias_regularizer=self._bias_regularizer,
         activation=helper.NoOpActivation())
@@ -155,7 +155,7 @@ class SqueezeExcitationQuantized(
         strides=1,
         padding='same',
         use_bias=True,
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         bias_regularizer=self._bias_regularizer,
         activation=helper.NoOpActivation())
@@ -345,7 +345,7 @@ class SegmentationHeadQuantized(tf.keras.layers.Layer):
           kernel_size=1,
           padding='same',
           use_bias=False,
-          kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+          kernel_initializer=tf_utils.clone_initializer(random_initializer),
           kernel_regularizer=self._config_dict['kernel_regularizer'],
           name='segmentation_head_deeplabv3p_fusion_conv',
           filters=self._config_dict['low_level_num_filters'],
@@ -365,7 +365,8 @@ class SegmentationHeadQuantized(tf.keras.layers.Layer):
                 kernel_size=3,
                 padding='same',
                 use_bias=False,
-                depthwise_initializer=random_initializer,
+                depthwise_initializer=tf_utils.clone_initializer(
+                    random_initializer),
                 depthwise_regularizer=self._config_dict['kernel_regularizer'],
                 depth_multiplier=1,
                 activation=helper.NoOpActivation()))
@@ -387,7 +388,7 @@ class SegmentationHeadQuantized(tf.keras.layers.Layer):
         kernel_size=self._config_dict['prediction_kernel_size'],
         padding='same',
         bias_initializer=tf.zeros_initializer(),
-        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+        kernel_initializer=tf_utils.clone_initializer(random_initializer),
         kernel_regularizer=self._config_dict['kernel_regularizer'],
         bias_regularizer=self._config_dict['bias_regularizer'],
         activation=helper.NoOpActivation())
@@ -396,11 +397,12 @@ class SegmentationHeadQuantized(tf.keras.layers.Layer):
         size=(self._config_dict['upsample_factor'],
               self._config_dict['upsample_factor']),
         interpolation='nearest')
-    self._resizing_layer = tf.keras.layers.Resizing(
+    self._resizing_layer = helper.ResizingQuantized(
         backbone_shape[1], backbone_shape[2], interpolation='bilinear')
 
     self._concat_layer = helper.ConcatenateQuantized(axis=self._bn_axis)
-    self._add_layer = tf.keras.layers.Add()
+    self._add_layer = tfmot.quantization.keras.QuantizeWrapperV2(
+        tf.keras.layers.Add(), configs.Default8BitQuantizeConfig([], [], True))
 
     super().build(input_shape)
 
@@ -561,7 +563,7 @@ class SpatialPyramidPoolingQuantized(nn_layers.SpatialPyramidPooling):
     conv1 = helper.Conv2DQuantized(
         filters=self._output_channels,
         kernel_size=(1, 1),
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         use_bias=False,
         activation=helper.NoOpActivation())
@@ -582,7 +584,8 @@ class SpatialPyramidPoolingQuantized(nn_layers.SpatialPyramidPooling):
                 kernel_size=kernel_size,
                 padding='same',
                 depthwise_regularizer=self._kernel_regularizer,
-                depthwise_initializer=self._kernel_initializer,
+                depthwise_initializer=tf_utils.clone_initializer(
+                    self._kernel_initializer),
                 dilation_rate=dilation_rate,
                 use_bias=False,
                 activation=helper.NoOpActivation())
@@ -594,7 +597,8 @@ class SpatialPyramidPoolingQuantized(nn_layers.SpatialPyramidPooling):
               kernel_size=kernel_size,
               padding='same',
               kernel_regularizer=self._kernel_regularizer,
-              kernel_initializer=self._kernel_initializer,
+              kernel_initializer=tf_utils.clone_initializer(
+                  self._kernel_initializer),
               dilation_rate=dilation_rate,
               use_bias=False,
               activation=helper.NoOpActivation())
@@ -617,7 +621,8 @@ class SpatialPyramidPoolingQuantized(nn_layers.SpatialPyramidPooling):
     conv2 = helper.Conv2DQuantized(
         filters=self._output_channels,
         kernel_size=(1, 1),
-        kernel_initializer=self._kernel_initializer,
+        kernel_initializer=tf_utils.clone_initializer(
+            self._kernel_initializer),
         kernel_regularizer=self._kernel_regularizer,
         use_bias=False,
         activation=helper.NoOpActivation())
@@ -634,11 +639,12 @@ class SpatialPyramidPoolingQuantized(nn_layers.SpatialPyramidPooling):
         helper.Conv2DQuantized(
             filters=self._output_channels,
             kernel_size=(1, 1),
-            kernel_initializer=self._kernel_initializer,
+            kernel_initializer=tf_utils.clone_initializer(
+                self._kernel_initializer),
             kernel_regularizer=self._kernel_regularizer,
             use_bias=False,
             activation=helper.NoOpActivation()),
-        norm_with_quantize(
+        norm(
             axis=self._bn_axis,
             momentum=self._batchnorm_momentum,
             epsilon=self._batchnorm_epsilon)
@@ -667,7 +673,7 @@ class SpatialPyramidPoolingQuantized(nn_layers.SpatialPyramidPooling):
     x = self._concat_layer(result)
     for layer in self._projection:
       x = layer(x, training=training)
-    x = self._activation_fn_no_quant(x)
+    x = self._activation_fn(x)
     return self._dropout_layer(x)
 
 
@@ -766,3 +772,23 @@ class ASPPQuantized(aspp.ASPP):
     level = str(self._config_dict['level'])
     backbone_output = inputs[level] if isinstance(inputs, dict) else inputs
     return self.aspp(backbone_output)
+
+
+class BatchNormalizationWrapper(tf.keras.layers.Wrapper):
+  """A BatchNormalizationWrapper that explicitly not folded.
+
+  It just added an identity depthwise conv right before the normalization.
+  As a result, given normalization op just folded into the identity depthwise
+  conv layer.
+
+  Note that it only used when the batch normalization folding is not working.
+  It makes quantize them as a 1x1 depthwise conv layer that just work as same
+  as inference mode for the normalization. (Basically mult and add for the BN.)
+  """
+
+  def call(self, inputs: tf.Tensor, *args: Any, **kwargs: Any) -> tf.Tensor:
+    channels = tf.shape(inputs)[-1]
+    x = tf.nn.depthwise_conv2d(
+        inputs, tf.ones([1, 1, channels, 1]), [1, 1, 1, 1], 'VALID')
+    outputs = self.layer.call(x, *args, **kwargs)
+    return outputs

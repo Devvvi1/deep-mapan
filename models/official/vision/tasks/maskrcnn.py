@@ -19,7 +19,7 @@ from typing import Any, Dict, Optional, List, Tuple, Mapping
 
 from absl import logging
 import tensorflow as tf
-from official.common import dataset_fn
+from official.common import dataset_fn as dataset_fn_lib
 from official.core import base_task
 from official.core import task_factory
 from official.vision.configs import maskrcnn as exp_cfg
@@ -95,9 +95,7 @@ class MaskRCNNTask(base_task.Task):
     if not self.task_config.init_checkpoint:
       return
 
-    print("----------------- in task.initialize() -----------------")
     ckpt_dir_or_file = self.task_config.init_checkpoint
-    print("ckpt_dir_or_file:", ckpt_dir_or_file)
     if tf.io.gfile.isdir(ckpt_dir_or_file):
       ckpt_dir_or_file = tf.train.latest_checkpoint(ckpt_dir_or_file)
 
@@ -109,7 +107,6 @@ class MaskRCNNTask(base_task.Task):
     else:
       ckpt_items = {}
       if 'backbone' in self.task_config.init_checkpoint_modules:
-        print("load backbone from init_ckpt!")
         ckpt_items.update(backbone=model.backbone)
       if 'decoder' in self.task_config.init_checkpoint_modules:
         ckpt_items.update(decoder=model.decoder)
@@ -120,11 +117,12 @@ class MaskRCNNTask(base_task.Task):
 
     logging.info('Finished loading pretrained checkpoint from %s',
                  ckpt_dir_or_file)
-    print("----------------- out task.initialize() -----------------")
 
-  def build_inputs(self,
-                   params: exp_cfg.DataConfig,
-                   input_context: Optional[tf.distribute.InputContext] = None):
+  def build_inputs(
+      self,
+      params: exp_cfg.DataConfig,
+      input_context: Optional[tf.distribute.InputContext] = None,
+      dataset_fn: Optional[dataset_fn_lib.PossibleDatasetType] = None):
     """Build input dataset."""
     decoder_cfg = params.decoder.get()
     if params.decoder.type == 'simple_decoder':
@@ -161,9 +159,12 @@ class MaskRCNNTask(base_task.Task):
         include_mask=self._task_config.model.include_mask,
         mask_crop_size=params.parser.mask_crop_size)
 
+    if not dataset_fn:
+      dataset_fn = dataset_fn_lib.pick_dataset_fn(params.file_type)
+
     reader = input_reader_factory.input_reader_generator(
         params,
-        dataset_fn=dataset_fn.pick_dataset_fn(params.file_type),
+        dataset_fn=dataset_fn,
         decoder_fn=decoder.decode,
         parser_fn=parser.parse_fn(params.is_training))
     dataset = reader.read(input_context=input_context)
@@ -356,11 +357,9 @@ class MaskRCNNTask(base_task.Task):
     Returns:
       A dictionary of logs.
     """
-    print("---------------------- in tasks.maskrcnn.train_step() ----------------------")
     images, labels = inputs
     num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
     with tf.GradientTape() as tape:
-      # 执行call()
       outputs = model(
           images,
           image_shape=labels['image_info'][:, 1, :],
@@ -369,8 +368,7 @@ class MaskRCNNTask(base_task.Task):
           gt_classes=labels['gt_classes'],
           gt_masks=(labels['gt_masks'] if self.task_config.model.include_mask
                     else None),
-          training=True,
-          afp=self.task_config.model.afp)
+          training=True)
       outputs = tf.nest.map_structure(
           lambda x: tf.cast(x, tf.float32), outputs)
 
@@ -396,79 +394,79 @@ class MaskRCNNTask(base_task.Task):
     if metrics:
       for m in metrics:
         m.update_state(losses[m.name])
-    print("---------------------- out tasks.maskrcnn.train_step() ----------------------")
+
     return logs
 
   def validation_step(self,
                       inputs: Tuple[Any, Any],
                       model: tf.keras.Model,
                       metrics: Optional[List[Any]] = None):
-      """Validatation step.
+    """Validatation step.
 
-      Args:
-        inputs: a dictionary of input tensors.
-        model: the keras.Model.
-        metrics: a nested structure of metrics objects.
+    Args:
+      inputs: a dictionary of input tensors.
+      model: the keras.Model.
+      metrics: a nested structure of metrics objects.
 
-      Returns:
-        A dictionary of logs.
-      """
-      images, labels = inputs
+    Returns:
+      A dictionary of logs.
+    """
+    images, labels = inputs
 
-      outputs = model(
-          images,
-          anchor_boxes=labels['anchor_boxes'],
-          image_shape=labels['image_info'][:, 1, :],
-          training=False)
+    outputs = model(
+        images,
+        anchor_boxes=labels['anchor_boxes'],
+        image_shape=labels['image_info'][:, 1, :],
+        training=False)
 
-      logs = {self.loss: 0}
-      if self._task_config.use_coco_metrics:
-          coco_model_outputs = {
-              'detection_boxes': outputs['detection_boxes'],
-              'detection_scores': outputs['detection_scores'],
-              'detection_classes': outputs['detection_classes'],
-              'num_detections': outputs['num_detections'],
-              'source_id': labels['groundtruths']['source_id'],
-              'image_info': labels['image_info']
-          }
-          if self.task_config.model.include_mask:
-              coco_model_outputs.update({
-                  'detection_masks': outputs['detection_masks'],
-              })
-          logs.update(
-              {self.coco_metric.name: (labels['groundtruths'], coco_model_outputs)})
+    logs = {self.loss: 0}
+    if self._task_config.use_coco_metrics:
+      coco_model_outputs = {
+          'detection_boxes': outputs['detection_boxes'],
+          'detection_scores': outputs['detection_scores'],
+          'detection_classes': outputs['detection_classes'],
+          'num_detections': outputs['num_detections'],
+          'source_id': labels['groundtruths']['source_id'],
+          'image_info': labels['image_info']
+      }
+      if self.task_config.model.include_mask:
+        coco_model_outputs.update({
+            'detection_masks': outputs['detection_masks'],
+        })
+      logs.update(
+          {self.coco_metric.name: (labels['groundtruths'], coco_model_outputs)})
 
-      if self.task_config.use_wod_metrics:
-          wod_model_outputs = {
-              'detection_boxes': outputs['detection_boxes'],
-              'detection_scores': outputs['detection_scores'],
-              'detection_classes': outputs['detection_classes'],
-              'num_detections': outputs['num_detections'],
-              'source_id': labels['groundtruths']['source_id'],
-              'image_info': labels['image_info']
-          }
-          logs.update(
-              {self.wod_metric.name: (labels['groundtruths'], wod_model_outputs)})
-      return logs
+    if self.task_config.use_wod_metrics:
+      wod_model_outputs = {
+          'detection_boxes': outputs['detection_boxes'],
+          'detection_scores': outputs['detection_scores'],
+          'detection_classes': outputs['detection_classes'],
+          'num_detections': outputs['num_detections'],
+          'source_id': labels['groundtruths']['source_id'],
+          'image_info': labels['image_info']
+      }
+      logs.update(
+          {self.wod_metric.name: (labels['groundtruths'], wod_model_outputs)})
+    return logs
 
   def aggregate_logs(self, state=None, step_outputs=None):
-      if self._task_config.use_coco_metrics:
-          if state is None:
-              self.coco_metric.reset_states()
-          self.coco_metric.update_state(
-              step_outputs[self.coco_metric.name][0],
-              step_outputs[self.coco_metric.name][1])
-      if self._task_config.use_wod_metrics:
-          if state is None:
-              self.wod_metric.reset_states()
-          self.wod_metric.update_state(
-              step_outputs[self.wod_metric.name][0],
-              step_outputs[self.wod_metric.name][1])
+    if self._task_config.use_coco_metrics:
       if state is None:
-          # Create an arbitrary state to indicate it's not the first step in the
-          # following calls to this function.
-          state = True
-      return state
+        self.coco_metric.reset_states()
+      self.coco_metric.update_state(
+          step_outputs[self.coco_metric.name][0],
+          step_outputs[self.coco_metric.name][1])
+    if self._task_config.use_wod_metrics:
+      if state is None:
+        self.wod_metric.reset_states()
+      self.wod_metric.update_state(
+          step_outputs[self.wod_metric.name][0],
+          step_outputs[self.wod_metric.name][1])
+    if state is None:
+      # Create an arbitrary state to indicate it's not the first step in the
+      # following calls to this function.
+      state = True
+    return state
 
   def reduce_aggregated_logs(self, aggregated_logs, global_step=None):
     logs = {}

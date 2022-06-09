@@ -41,7 +41,6 @@ class FPN(tf.keras.Model):
       input_specs: Mapping[str, tf.TensorShape],
       min_level: int = 3,
       max_level: int = 7,
-      bpa: bool = False,
       num_filters: int = 256,
       fusion_type: str = 'sum',
       use_separable_conv: bool = False,
@@ -66,6 +65,7 @@ class FPN(tf.keras.Model):
         concat for feature fusion.
       use_separable_conv: A `bool`.  If True use separable convolution for
         convolution in FPN layers.
+      use_keras_layer: A `bool`. If Ture use keras layers as many as possible.
       activation: A `str` name of the activation function.
       use_sync_bn: A `bool`. If True, use synchronized batch normalization.
       norm_momentum: A `float` of normalization momentum for the moving average.
@@ -81,7 +81,6 @@ class FPN(tf.keras.Model):
         'input_specs': input_specs,
         'min_level': min_level,
         'max_level': max_level,
-        'bpa': bpa,
         'num_filters': num_filters,
         'fusion_type': fusion_type,
         'use_separable_conv': use_separable_conv,
@@ -114,14 +113,8 @@ class FPN(tf.keras.Model):
     logging.info('FPN input_specs: %s', input_specs)
     inputs = self._build_input_pyramid(input_specs, min_level)
     backbone_max_level = min(int(max(inputs.keys())), max_level)
-    
-    # print("-------- FPN info --------")
-    # print("min_level:", min_level)
-    # print("max_level:", max_level)
-    # print("backbone_max_level:", backbone_max_level)
+
     # Build lateral connections.
-    # 其实就是构建一个 1*1 conv
-    # range(3, 5+1)，C3-C5 经过一个 1*1 conv 存于 feats_lateral={"3":C3}
     feats_lateral = {}
     for level in range(min_level, backbone_max_level + 1):
       feats_lateral[str(level)] = conv2d(
@@ -134,34 +127,28 @@ class FPN(tf.keras.Model):
               inputs[str(level)])
 
     # Build top-down path.
-    # 取出 P5，它是由 C5 直接生成的
     feats = {str(backbone_max_level): feats_lateral[str(backbone_max_level)]}
-    # range(5-1, 3-1, -1) -> 构造 P4-P3
     for level in range(backbone_max_level - 1, min_level - 1, -1):
-      # feat_a 为 P3，经过 2x up上采样
       feat_a = spatial_transform_ops.nearest_upsampling(
           feats[str(level + 1)], 2, use_keras_layer=use_keras_layer)
-      # feat_b 为 C2，经过 1*1 conv，即横向连接
       feat_b = feats_lateral[str(level)]
-      # 两者相加得到 P2
+
       if fusion_type == 'sum':
-          if use_keras_layer:
-              feats[str(level)] = tf.keras.layers.Add()([feat_a, feat_b])
-          else:
-              feats[str(level)] = feat_a + feat_b
+        if use_keras_layer:
+          feats[str(level)] = tf.keras.layers.Add()([feat_a, feat_b])
+        else:
+          feats[str(level)] = feat_a + feat_b
       elif fusion_type == 'concat':
-          if use_keras_layer:
-              feats[str(level)] = tf.keras.layers.Concatenate(axis=-1)(
-                  [feat_a, feat_b])
-          else:
-              feats[str(level)] = tf.concat([feat_a, feat_b], axis=-1)
+        if use_keras_layer:
+          feats[str(level)] = tf.keras.layers.Concatenate(axis=-1)(
+              [feat_a, feat_b])
+        else:
+          feats[str(level)] = tf.concat([feat_a, feat_b], axis=-1)
       else:
         raise ValueError('Fusion type {} not supported.'.format(fusion_type))
 
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build post-hoc 3x3 convolution kernel.
-    # # 分别经过一个 3*3 conv 用于消除上采样带来的混叠效应
-    # range(3,5+1) -> P3-P5 
     for level in range(min_level, backbone_max_level + 1):
       feats[str(level)] = conv2d(
           filters=num_filters,
@@ -172,60 +159,9 @@ class FPN(tf.keras.Model):
           kernel_regularizer=kernel_regularizer,
           bias_regularizer=bias_regularizer)(
               feats[str(level)])
-    
-    # add for bpa buttom-up path
-    # bpa = False
-    if bpa:
-        print("bpa:True")
-        # 取出 N3，它是由 P3 直接生成的
-        # feats = {str(min_level): feats[str(min_level)]}
-        for level in range(min_level+1, backbone_max_level+1):
-            # feat_a 为 N3，经过 2x up下采样
-            feat_a = conv2d(
-                filters=num_filters,
-                strides=2,
-                kernel_size=3,
-                padding='same',
-                kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer,
-                bias_regularizer=bias_regularizer)(
-                feats[str(level - 1)])
-            # feat_b 为 P4
-            feat_b = feats[str(level)]
-            # 两者相加
-            if fusion_type == 'sum':
-                if use_keras_layer:
-                    feats[str(level)] = tf.keras.layers.Add()([feat_a, feat_b])
-                else:
-                    feats[str(level)] = feat_a + feat_b
-            elif fusion_type == 'concat':
-                if use_keras_layer:
-                    feats[str(level)] = tf.keras.layers.Concatenate(axis=-1)(
-                        [feat_a, feat_b])
-                else:
-                    feats[str(level)] = tf.concat([feat_a, feat_b], axis=-1)
-            else:
-                raise ValueError('Fusion type {} not supported.'.format(fusion_type))
-            # 经过一个 1*1 conv 后得到 N4
-            feats[str(level)] = conv2d(
-                filters=num_filters,
-                strides=1,
-                kernel_size=3,
-                padding='same',
-                kernel_initializer=kernel_initializer,
-                kernel_regularizer=kernel_regularizer,
-                bias_regularizer=bias_regularizer)(
-                feats[str(level)])
-    else:
-        print("bpa:False")
-        i = 0
 
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build coarser FPN levels introduced for RetinaNet.
-    # range(5+1, 7+1) -> 构造 P6-P7
-    # P6 由 P5 经过一个 3*3 conv 生成
-    # P7 由 P6 先经过 ReLU 再经过一个 3*3 conv 生成
-    # 最终得到 P7-P3
     for level in range(backbone_max_level + 1, max_level + 1):
       feats_in = feats[str(level - 1)]
       if level > backbone_max_level + 1:
@@ -241,13 +177,10 @@ class FPN(tf.keras.Model):
               feats_in)
 
     # Apply batch norm layers.
-    # range(3, 7+1) -> P3-P7 分别经过一个 BN
     for level in range(min_level, max_level + 1):
       feats[str(level)] = norm(
           axis=bn_axis, momentum=norm_momentum, epsilon=norm_epsilon)(
               feats[str(level)])
-    # print("len(feats):", len(feats))
-    # print("----------------------------------")
 
     self._output_specs = {
         str(level): feats[str(level)].get_shape()
@@ -312,7 +245,6 @@ def build_fpn_decoder(
       input_specs=input_specs,
       min_level=model_config.min_level,
       max_level=model_config.max_level,
-      bpa=model_config.bpa,
       num_filters=decoder_cfg.num_filters,
       fusion_type=decoder_cfg.fusion_type,
       use_separable_conv=decoder_cfg.use_separable_conv,

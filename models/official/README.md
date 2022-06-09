@@ -66,12 +66,32 @@ In the near future, we will add:
 
 ### [Natural Language Processing](nlp/README.md)
 
+#### Pre-trained Language Model
+
 | Model | Reference (Paper) |
 |-------|-------------------|
-| [ALBERT (A Lite BERT)](nlp/MODEL_GARDEN.md#available-model-configs) | [ALBERT: A Lite BERT for Self-supervised Learning of Language Representations](https://arxiv.org/abs/1909.11942) |
-| [BERT (Bidirectional Encoder Representations from Transformers)](nlp/MODEL_GARDEN.md#available-model-configs) | [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) |
-| [NHNet (News Headline generation model)](projects/nhnet) | [Generating Representative Headlines for News Stories](https://arxiv.org/abs/2001.09386) |
+| [ALBERT](nlp/MODEL_GARDEN.md#available-model-configs) | [ALBERT: A Lite BERT for Self-supervised Learning of Language Representations](https://arxiv.org/abs/1909.11942) |
+| [BERT](nlp/MODEL_GARDEN.md#available-model-configs) | [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805) |
+| [ELECTRA](nlp/tasks/electra_task.py) | [ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators](https://arxiv.org/abs/2003.10555) |
+
+
+#### Neural Machine Translation
+
+| Model | Reference (Paper) |
+|-------|-------------------|
 | [Transformer](nlp/MODEL_GARDEN.md#available-model-configs) | [Attention Is All You Need](https://arxiv.org/abs/1706.03762) |
+
+#### Natural Language Generation
+
+| Model | Reference (Paper) |
+|-------|-------------------|
+| [NHNet (News Headline generation model)](projects/nhnet) | [Generating Representative Headlines for News Stories](https://arxiv.org/abs/2001.09386) |
+
+
+#### Knowledge Distillation
+
+| Model | Reference (Paper) |
+|-------|-------------------|
 | [MobileBERT](projects/mobilebert) | [MobileBERT: a Compact Task-Agnostic BERT for Resource-Limited Devices](https://arxiv.org/abs/2004.02984) |
 
 ### Recommendation
@@ -97,16 +117,21 @@ pip3 install tensorflow-text-nightly # when model uses `nlp` packages
 
 *   Incase of stable versions, targeting a specific release, Tensorflow-models
 repository version numbers match with the target TensorFlow release. For
-example, [TensorFlow-models v2.5.0]
-(https://github.com/tensorflow/models/releases/tag/v2.5.0)
-is compatible with [TensorFlow v2.5.0]
-(https://github.com/tensorflow/tensorflow/releases/tag/v2.5.0).
+example, [TensorFlow-models v2.8.x](https://github.com/tensorflow/models/releases/tag/v2.8.0)
+is compatible with [TensorFlow v2.8.x](https://github.com/tensorflow/tensorflow/releases/tag/v2.8.0).
 This is equivalent to the following.
 
 ```shell
 pip3 install tf-models-official==2.5.0
 pip3 install tensorflow-text==2.5.0 # when model uses `nlp` packages
 ```
+
+Starting from 2.9.x release, we release the modeling library as
+`tensorflow_models` package and users can `import tensorflow_models` directly to
+access to the exported symbols. The API documentation is published to
+[tensorflow.org](https://www.tensorflow.org/api_docs/python/tfm). If you are
+using the latest nightly version or github code directly, please follow the
+docstrings in the github.
 
 Please follow the below steps before running models in this repository.
 

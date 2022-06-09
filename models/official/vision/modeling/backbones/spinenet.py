@@ -199,14 +199,10 @@ class SpineNet(tf.keras.Model):
     self._use_sync_bn = use_sync_bn
     self._norm_momentum = norm_momentum
     self._norm_epsilon = norm_epsilon
-    if activation == 'relu':
-      self._activation_fn = tf.nn.relu
-    elif activation == 'swish':
-      self._activation_fn = tf.nn.swish
-    else:
-      raise ValueError('Activation {} not implemented.'.format(activation))
     self._init_block_fn = 'bottleneck'
     self._num_init_blocks = 2
+
+    self._set_activation_fn(activation)
 
     if use_sync_bn:
       self._norm = layers.experimental.SyncBatchNormalization
@@ -231,6 +227,14 @@ class SpineNet(tf.keras.Model):
 
     self._output_specs = {l: endpoints[l].get_shape() for l in endpoints}
     super(SpineNet, self).__init__(inputs=inputs, outputs=endpoints)
+
+  def _set_activation_fn(self, activation):
+    if activation == 'relu':
+      self._activation_fn = tf.nn.relu
+    elif activation == 'swish':
+      self._activation_fn = tf.nn.swish
+    else:
+      raise ValueError('Activation {} not implemented.'.format(activation))
 
   def _block_group(self,
                    inputs: tf.Tensor,
@@ -405,9 +409,9 @@ class SpineNet(tf.keras.Model):
         if (block_spec.level < self._min_level or
             block_spec.level > self._max_level):
           logging.warning(
-              'SpineNet output level out of range [min_level, max_level] = '
+              'SpineNet output level %s out of range [min_level, max_level] = '
               '[%s, %s] will not be used for further processing.',
-              self._min_level, self._max_level)
+              block_spec.level, self._min_level, self._max_level)
         endpoints[str(block_spec.level)] = x
 
     return endpoints

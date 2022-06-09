@@ -166,7 +166,7 @@ class ResidualBlock(tf.keras.layers.Layer):
 class InputDownsampleBlock(tf.keras.layers.Layer):
   """Block for the initial feature downsampling."""
 
-  def __init__(self, out_channels_initial_conv, out_channels_residual_block, num_levels):
+  def __init__(self, out_channels_initial_conv, out_channels_residual_block):
     """Initializes the downsample block.
 
     Args:
@@ -177,30 +177,14 @@ class InputDownsampleBlock(tf.keras.layers.Layer):
     """
 
     super(InputDownsampleBlock, self).__init__()
-    self.conv_block = []
-    for i in range(num_levels):
-        self.conv_block.append(ConvolutionalBlock(
-            kernel_size=7, out_channels=out_channels_initial_conv, stride=2,
-            padding='valid'))
-    # self.conv_block = ConvolutionalBlock(
-        # kernel_size=7, out_channels=out_channels_initial_conv, stride=2,
-        # padding='valid')
+    self.conv_block = ConvolutionalBlock(
+        kernel_size=7, out_channels=out_channels_initial_conv, stride=2,
+        padding='valid')
     self.residual_block = ResidualBlock(
         out_channels=out_channels_residual_block, stride=2, skip_conv=True)
 
-  def call(self, inputs, afp):
-    if afp:
-        x = inputs
-    else:
-        x = [inputs]
-    # ------------ Conv block for each level -------------#
-    for i in range(len(x)):
-        x[i] = self.conv_block[i](x[i])
-    # ------------ Fusion by max -------------#
-    for i in range(1, len(x)):
-        x[0] = tf.maximum(x[0], x[i])
-    x = x[0]
-    return self.residual_block(x)
+  def call(self, inputs):
+    return self.residual_block(self.conv_block(inputs))
 
 
 class InputConvBlock(tf.keras.layers.Layer):
@@ -210,7 +194,7 @@ class InputConvBlock(tf.keras.layers.Layer):
   the input.
   """
 
-  def __init__(self, out_channels_initial_conv, out_channels_residual_block, num_levels):
+  def __init__(self, out_channels_initial_conv, out_channels_residual_block):
     """Initializes the downsample block.
 
     Args:
@@ -221,30 +205,15 @@ class InputConvBlock(tf.keras.layers.Layer):
     """
 
     super(InputConvBlock, self).__init__()
-    self.conv_block = []
-    for i in range(num_levels):
-        self.conv_block.append(ConvolutionalBlock(
-            kernel_size=3, out_channels=out_channels_initial_conv, stride=1,
-            padding='valid'))
-    # self.conv_block = ConvolutionalBlock(
-        # kernel_size=3, out_channels=out_channels_initial_conv, stride=1,
-        # padding='valid')
+
+    self.conv_block = ConvolutionalBlock(
+        kernel_size=3, out_channels=out_channels_initial_conv, stride=1,
+        padding='valid')
     self.residual_block = ResidualBlock(
         out_channels=out_channels_residual_block, stride=1, skip_conv=True)
 
-  def call(self, inputs, afp):
-    if afp:
-        x = inputs
-    else:
-        x = [inputs]
-    # ------------ Conv block for each level -------------#
-    for i in range(len(x)):
-        x[i] = self.conv_block[i](x[i])
-    # ------------ Fusion by max -------------#
-    for i in range(1, len(x)):
-        x[0] = tf.maximum(x[0], x[i])
-    x = x[0]
-    return self.residual_block(x)
+  def call(self, inputs):
+    return self.residual_block(self.conv_block(inputs))
 
 
 def _make_repeated_residual_blocks(out_channels, num_blocks,
@@ -345,23 +314,19 @@ class EncoderDecoderBlock(tf.keras.layers.Layer):
     out_channels_downsampled = channel_dims[1]
 
     self.encoder_decoder_shortcut = encoder_decoder_shortcut
-    
-    # ------------ Encoder Block-1 -------------#
+
     if encoder_decoder_shortcut:
       self.merge_features = tf.keras.layers.Add()
-      # Stack Residual blocks one after the other
       self.encoder_block1 = _make_repeated_residual_blocks(
           out_channels=out_channels, num_blocks=blocks_per_stage[0],
           initial_stride=1)
-    
-    # ------------ Encoder Block-2 (used to downsample the input) -------------#
+
     initial_stride = 2 if stagewise_downsample else 1
     self.encoder_block2 = _make_repeated_residual_blocks(
         out_channels=out_channels_downsampled,
         num_blocks=blocks_per_stage[0], initial_stride=initial_stride,
         initial_skip_conv=out_channels != out_channels_downsampled)
-    
-    # ------------ Recursive Block -------------#
+
     if num_stages > 1:
       self.inner_block = [
           EncoderDecoderBlock(num_stages - 1, channel_dims[1:],
@@ -373,13 +338,11 @@ class EncoderDecoderBlock(tf.keras.layers.Layer):
       self.inner_block = _make_repeated_residual_blocks(
           out_channels=out_channels_downsampled,
           num_blocks=blocks_per_stage[1])
-    
-    # ------------ Decoder Block -------------#
+
     self.decoder_block = _make_repeated_residual_blocks(
         residual_channels=out_channels_downsampled,
         out_channels=out_channels, num_blocks=blocks_per_stage[0])
-    
-    # ------------ Upsample Block -------------#
+
     self.upsample = tf.keras.layers.UpSampling2D(initial_stride)
 
   def call(self, inputs):
@@ -404,8 +367,7 @@ class HourglassNetwork(tf.keras.Model):
 
   def __init__(self, num_stages, input_channel_dims, channel_dims_per_stage,
                blocks_per_stage, num_hourglasses, initial_downsample=True,
-               stagewise_downsample=True, encoder_decoder_shortcut=True,    
-               num_levels=1):
+               stagewise_downsample=True, encoder_decoder_shortcut=True):
     """Intializes the feature extractor.
 
     Args:
@@ -432,25 +394,20 @@ class HourglassNetwork(tf.keras.Model):
 
     self.num_hourglasses = num_hourglasses
     self.initial_downsample = initial_downsample
-    # ------------ Input Block -------------#
     if initial_downsample:
       self.downsample_input = InputDownsampleBlock(
           out_channels_initial_conv=input_channel_dims,
-          out_channels_residual_block=channel_dims_per_stage[0],    
-          num_levels=num_levels
+          out_channels_residual_block=channel_dims_per_stage[0]
       )
     else:
       self.conv_input = InputConvBlock(
           out_channels_initial_conv=input_channel_dims,
-          out_channels_residual_block=channel_dims_per_stage[0],
-          num_levels=num_levels
+          out_channels_residual_block=channel_dims_per_stage[0]
       )
 
     self.hourglass_network = []
     self.output_conv = []
-    
-    for _ in range(self.num_hourglasses): # single_stage_hourglass()中num_hourglasses为1
-      # ------------ Encoder-Decoder Block -------------#
+    for _ in range(self.num_hourglasses):
       self.hourglass_network.append(
           EncoderDecoderBlock(
               num_stages=num_stages, channel_dims=channel_dims_per_stage,
@@ -458,7 +415,6 @@ class HourglassNetwork(tf.keras.Model):
               stagewise_downsample=stagewise_downsample,
               encoder_decoder_shortcut=encoder_decoder_shortcut)
       )
-      # ------------ Output Block -------------#
       self.output_conv.append(
           ConvolutionalBlock(kernel_size=3,
                              out_channels=channel_dims_per_stage[0])
@@ -483,12 +439,12 @@ class HourglassNetwork(tf.keras.Model):
 
     self.intermediate_relu = tf.keras.layers.ReLU()
 
-  def call(self, inputs, afp):
+  def call(self, inputs):
 
     if self.initial_downsample:
-      inputs = self.downsample_input(inputs, afp)
+      inputs = self.downsample_input(inputs)
     else:
-      inputs = self.conv_input(inputs, afp)
+      inputs = self.conv_input(inputs)
 
     outputs = []
 
@@ -601,8 +557,7 @@ def hourglass_104():
 def single_stage_hourglass(input_channel_dims, channel_dims_per_stage,
                            blocks_per_stage, initial_downsample=True,
                            stagewise_downsample=True,
-                           encoder_decoder_shortcut=True,
-                           num_levels=1):
+                           encoder_decoder_shortcut=True):
   assert len(channel_dims_per_stage) == len(blocks_per_stage)
 
   return HourglassNetwork(
@@ -613,78 +568,70 @@ def single_stage_hourglass(input_channel_dims, channel_dims_per_stage,
       blocks_per_stage=blocks_per_stage,
       initial_downsample=initial_downsample,
       stagewise_downsample=stagewise_downsample,
-      encoder_decoder_shortcut=encoder_decoder_shortcut,
-      num_levels=num_levels
+      encoder_decoder_shortcut=encoder_decoder_shortcut
   )
 
 
-def hourglass_10(num_channels, initial_downsample=True, num_levels=1):
+def hourglass_10(num_channels, initial_downsample=True):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       initial_downsample=initial_downsample,
       blocks_per_stage=[1, 1],
-      channel_dims_per_stage=[nc * 2, nc * 2],
-      num_levels=num_levels)
+      channel_dims_per_stage=[nc * 2, nc * 2])
 
 
-def hourglass_20(num_channels, initial_downsample=True, num_levels=1):
+def hourglass_20(num_channels, initial_downsample=True):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       initial_downsample=initial_downsample,
       blocks_per_stage=[1, 2, 2],
-      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3],
-      num_levels=num_levels)
+      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3])
 
 
-def hourglass_32(num_channels, initial_downsample=True, num_levels=1):
+def hourglass_32(num_channels, initial_downsample=True):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       initial_downsample=initial_downsample,
       blocks_per_stage=[2, 2, 2, 2],
-      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3, nc * 3],
-      num_levels=num_levels)
+      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3, nc * 3])
 
 
-def hourglass_52(num_channels, initial_downsample=True, num_levels=1):
+def hourglass_52(num_channels, initial_downsample=True):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       initial_downsample=initial_downsample,
       blocks_per_stage=[2, 2, 2, 2, 2, 4],
-      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3, nc * 3, nc * 3, nc*4],
-      num_levels=num_levels)
+      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3, nc * 3, nc * 3, nc*4])
 
 
-def hourglass_100(num_channels, initial_downsample=True, num_levels=1):
+def hourglass_100(num_channels, initial_downsample=True):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       initial_downsample=initial_downsample,
       blocks_per_stage=[4, 4, 4, 4, 4, 8],
-      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3, nc * 3, nc * 3, nc*4],
-      num_levels=num_levels)
+      channel_dims_per_stage=[nc * 2, nc * 2, nc * 3, nc * 3, nc * 3, nc*4])
 
 
-def hourglass_20_uniform_size(num_channels, num_levels=1):
+def hourglass_20_uniform_size(num_channels):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       blocks_per_stage=[1, 2, 2],
       channel_dims_per_stage=[nc * 2, nc * 2, nc * 3],
       initial_downsample=False,
-      stagewise_downsample=False,
-      num_levels=num_levels)
+      stagewise_downsample=False)
 
 
-def hourglass_20_no_shortcut(num_channels, num_levels=1):
+def hourglass_20_no_shortcut(num_channels):
   nc = num_channels
   return single_stage_hourglass(
       input_channel_dims=nc,
       blocks_per_stage=[1, 2, 2],
       channel_dims_per_stage=[nc * 2, nc * 2, nc * 3],
       initial_downsample=False,
-      encoder_decoder_shortcut=False,
-      num_levels=num_levels)
+      encoder_decoder_shortcut=False)

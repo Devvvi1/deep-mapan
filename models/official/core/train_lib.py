@@ -43,8 +43,7 @@ def run_experiment(
     train_actions: Optional[List[orbit.Action]] = None,
     eval_actions: Optional[List[orbit.Action]] = None,
     trainer: Optional[base_trainer.Trainer] = None,
-    controller_cls=orbit.Controller,
-    debug: bool = False,
+    controller_cls=orbit.Controller
 ) -> Tuple[tf.keras.Model, Mapping[str, Any]]:
   """Runs train/eval configured by the experiment params.
 
@@ -73,7 +72,6 @@ def run_experiment(
   """
 
   with distribution_strategy.scope():
-    # ------------ 创建训练器 -------------#
     if not trainer:
       trainer = train_utils.create_trainer(
           params,
@@ -82,7 +80,6 @@ def run_experiment(
           evaluate=('eval' in mode) or run_post_eval,
           checkpoint_exporter=maybe_create_best_ckpt_exporter(
               params, model_dir))
-  print("---------------------- Created trainer ----------------------")
 
   if trainer.checkpoint:
     if model_dir is None:
@@ -96,7 +93,6 @@ def run_experiment(
         init_fn=trainer.initialize)
   else:
     checkpoint_manager = None
-  print("---------------------- Finished Checkpoint Manager ----------------------")
 
   train_actions = [] if not train_actions else train_actions
   train_actions += actions.get_train_actions(
@@ -105,7 +101,6 @@ def run_experiment(
   eval_actions = [] if not eval_actions else eval_actions
   eval_actions += actions.get_eval_actions(params, trainer, model_dir)
 
-  # ------------ 创建控制器去管理train和eval -------------#
   controller = controller_cls(
       strategy=distribution_strategy,
       trainer=trainer if 'train' in mode else None,
@@ -121,16 +116,10 @@ def run_experiment(
       (save_summary) else None,
       train_actions=train_actions,
       eval_actions=eval_actions)
-  print("---------------------- Created controller ----------------------")
 
-  if debug:
-      print("---------------------- This is a debug ----------------------")
-      return trainer.model, {}
-
-  # ------------ 按设置好的模式运行 -------------#
   logging.info('Starts to execute mode: %s', mode)
   with distribution_strategy.scope():
-    if mode == 'train':
+    if mode == 'train' or mode == 'train_and_post_eval':
       controller.train(steps=params.trainer.train_steps)
     elif mode == 'train_and_eval':
       controller.train_and_evaluate(
@@ -152,27 +141,20 @@ def run_experiment(
           timeout_fn=timeout_fn)
     else:
       raise NotImplementedError('The mode is not implemented: %s' % mode)
-  print("---------------------- Finished the job: %s ----------------------", mode)
 
-  # 计算参数的数量
   num_params = train_utils.try_count_params(trainer.model)
   if num_params is not None:
     logging.info('Number of trainable params in model: %f Millions.',
                  num_params / 10.**6)
-  print("---------------------- Calculated the number of trainable params ----------------------")
 
-  # 计算模型的FLOPs
   flops = train_utils.try_count_flops(trainer.model)
   if flops is not None:
     logging.info('FLOPs (multi-adds) in model: %f Billions.',
                  flops / 10.**9 / 2)
-  print("---------------------- Calculated the FLOPs (multi-adds) ----------------------")
 
-  # 训练后是否运行一次后评估
-  if run_post_eval:
+  if run_post_eval or mode == 'train_and_post_eval':
     with distribution_strategy.scope():
-      print("---------------------- Evaluated after training ----------------------")
-      return trainer.model, trainer.evaluate(
-          tf.convert_to_tensor(params.trainer.validation_steps))
+      return trainer.model, controller.evaluate(
+          steps=params.trainer.validation_steps)
   else:
     return trainer.model, {}
