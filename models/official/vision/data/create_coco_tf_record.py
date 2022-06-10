@@ -68,6 +68,7 @@ flags.DEFINE_boolean(
     'default: False.')
 flags.DEFINE_string('output_file_prefix', '/tmp/train', 'Path to output file')
 flags.DEFINE_integer('num_shards', 32, 'Number of shards for output file.')
+flags.DEFINE_boolean('just_sh', False, 'Just generate .sh for removing images without bboxes.')
 _NUM_PROCESSES = flags.DEFINE_integer(
     'num_processes', None,
     ('Number of parallel processes to use. '
@@ -401,6 +402,7 @@ def _load_object_annotations(object_annotations_file, image_dirs):
       command = "gsutil mv " + OLD_PATH + name + " " + NEW_PATH + name
       print(command)
       f.write(command + "\n")
+  print("Finished .sh")
   f.close()
 
   logging.info('%d images are missing bboxes.', missing_annotation_count)
@@ -498,7 +500,8 @@ def _create_tf_record_from_coco_annotations(images_info_file,
                                             panoptic_masks_dir=None,
                                             panoptic_annotations_file=None,
                                             include_panoptic_masks=False,
-                                            include_masks=False):
+                                            include_masks=False,
+                                            just_sh=False):
   """Loads COCO annotation json files and converts to tf.Record format.
 
   Args:
@@ -540,7 +543,9 @@ def _create_tf_record_from_coco_annotations(images_info_file,
   if panoptic_annotations_file:
     img_to_panoptic_annotation, is_category_thing = (
         _load_panoptic_annotations(panoptic_annotations_file))
-
+  if just_sh:
+      logging.info('Just generate .sh for removing images without bboxes. Run it by:\n'
+                   'sudo bash official/vision/data/images_missing_bbox.sh')
   coco_annotations_iter = generate_annotations(
       images=images,
       image_dirs=image_dirs,
@@ -584,7 +589,8 @@ def main(_):
                                           FLAGS.panoptic_masks_dir,
                                           FLAGS.panoptic_annotations_file,
                                           FLAGS.include_panoptic_masks,
-                                          FLAGS.include_masks)
+                                          FLAGS.include_masks,
+                                          FLAGS.just_sh)
 
 # gsutil mv gs://mapan/tf_data/coco/val/val-00001-of-00032.tfrecord gs://mapan/tf_data/coco/val/
 if __name__ == '__main__':

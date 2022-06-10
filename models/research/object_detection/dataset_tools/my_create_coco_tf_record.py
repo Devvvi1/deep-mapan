@@ -1,9 +1,3 @@
-# -*- coding = utf-8 -*-
-# @Time     : 2022/6/10 4:41
-# @Author   : 陈梓雄
-# @ID       : 2009853G-II20-0083
-# @File     : my_create_coco_tf_record.py
-# @Software : PyCharm
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +14,9 @@
 # ==============================================================================
 
 r"""Convert raw COCO dataset to TFRecord for object_detection.
+
+This tool supports data generation for object detection (boxes, masks),
+keypoint detection, and DensePose.
 
 Please note that this tool creates sharded output files.
 
@@ -38,26 +35,23 @@ from __future__ import print_function
 import hashlib
 import io
 import json
+# import logging
 import os
 import contextlib2
 import numpy as np
 import PIL.Image
 
 from pycocotools import mask
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
+import tensorflow.compat.v1 as tf  # import tensorflow as tf
 
 from object_detection.dataset_tools import tf_record_creation_util
 from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
 
-
-flags = tf.app.flags
-# tf.compat.v1.flags
-
-tf.flags.DEFINE_boolean('include_masks', True,
-                        'Whether to include instance segmentations masks '
-                        '(PNG encoded) in the result. default: False.')
+flags = tf.app.flags  # tf.compat.v1.flags
+tf.flags.DEFINE_boolean(
+    'include_masks', True, 'Whether to include instance segmentations masks '
+    '(PNG encoded) in the result. default: False.')
 tf.flags.DEFINE_string('image_dir', '', 'Directory containing images.')
 tf.flags.DEFINE_string('annotations_file', '', 'Annotations JSON file.')
 tf.flags.DEFINE_string('output_file_prefix', '/tmp/train', 'Path to output file')
@@ -123,6 +117,7 @@ def create_tf_example(image,
   area = []
   encoded_mask_png = []
   num_annotations_skipped = 0
+
   for object_annotations in annotations_list:
     (x, y, width, height) = tuple(object_annotations['bbox'])
     if width <= 0 or height <= 0:
@@ -232,6 +227,7 @@ def _create_tf_record_from_coco_annotations(annotations_file,
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))
       image_id = image['id']
+
       if image_id not in annotations_index:
         continue
       else:
@@ -268,4 +264,11 @@ def main(_):
 if __name__ == '__main__':
   tf.app.run()
   # tf.compat.v1.app.run()
+
+# -*- coding = utf-8 -*-
+# @Time     : 2022/6/10 4:41
+# @Author   : 陈梓雄
+# @ID       : 2009853G-II20-0083
+# @File     : my_create_coco_tf_record.py
+# @Software : PyCharm
 
