@@ -23,7 +23,7 @@ r"""Convert raw COCO dataset to TFRecord for object_detection.
 
 Please note that this tool creates sharded output files.
 
-Example usage:
+Example usage:filename
     python create_coco_tf_record.py --logtostderr \
       --include_masks \
       --image_dir="${TRAIN_IMAGE_DIR}" \
@@ -44,7 +44,8 @@ import numpy as np
 import PIL.Image
 
 from pycocotools import mask
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from object_detection.dataset_tools import tf_record_creation_util
 from object_detection.utils import dataset_util
@@ -52,6 +53,8 @@ from object_detection.utils import label_map_util
 
 
 flags = tf.app.flags
+# tf.compat.v1.flags
+
 tf.flags.DEFINE_boolean('include_masks', True,
                         'Whether to include instance segmentations masks '
                         '(PNG encoded) in the result. default: False.')
@@ -263,4 +266,5 @@ def main(_):
 
 if __name__ == '__main__':
   tf.app.run()
+  # tf.compat.v1.app.run()
 
