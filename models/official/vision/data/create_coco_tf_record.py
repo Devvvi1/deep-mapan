@@ -382,7 +382,7 @@ def _load_object_annotations(object_annotations_file, image_dirs):
 
   # 根据丢失bboxes的image file_name，生成包含移动GCS中对应图像的指令的.sh脚本
   ROOT_DIR = "./official/vision/data"
-  OLD_PATH = str(image_dirs).replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n') + "/"
+  OLD_PATH = str(image_dirs).replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n') + '/'
   NEW_PATH = OLD_PATH.replace('train2017', 'train2017_bbox').replace('val2017', 'val2017_bbox')
   print("OLD_PATH is ", OLD_PATH)
   print("NEW_PATH is ", NEW_PATH)
@@ -474,7 +474,7 @@ def generate_annotations(images, image_dirs,
                          include_panoptic_masks=False,
                          include_masks=False):
   """Generator for COCO annotations."""
-
+  print("num of images:", len(images))
   for image in images:
     object_annotation = (img_to_obj_annotation.get(image['id'], None) if
                          img_to_obj_annotation else None)
