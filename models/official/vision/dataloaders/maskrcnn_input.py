@@ -146,10 +146,14 @@ class Parser(parser.Parser):
         gt_masks: groundtrugh masks cropped by the bounding box and
           resized to a fixed size determined by mask_crop_size.
     """
+    print("---------------------- in official/vision/dataloaders/maskrcnn_input.StandardTrainer._parse_train_data() ----------------------")
+    data_keys = list(data.keys())
+    print("labels keys:", data_keys)
     classes = data['groundtruth_classes']
     boxes = data['groundtruth_boxes']
     if self._include_mask:
       masks = data['groundtruth_instance_masks']
+      print("data has groundtruth_instance_masks!")
 
     is_crowds = data['groundtruth_is_crowd']
     # Skips annotations with `is_crowd` = True.
@@ -184,6 +188,7 @@ class Parser(parser.Parser):
     # Converts boxes from normalized coordinates to pixel coordinates.
     # Now the coordinates of boxes are w.r.t. the original image.
     boxes = box_ops.denormalize_boxes(boxes, image_shape)
+    print("Converts boxes!")
 
     # Resizes and crops image.
     image, image_info = preprocess_ops.resize_and_crop_image(
@@ -201,11 +206,14 @@ class Parser(parser.Parser):
     offset = image_info[3, :]
     boxes = preprocess_ops.resize_and_crop_boxes(
         boxes, image_scale, image_info[1, :], offset)
+    print("Resizes and crops boxes!")
 
     # Filters out ground truth boxes that are all zeros.
     indices = box_ops.get_non_empty_box_indices(boxes)
     boxes = tf.gather(boxes, indices)
     classes = tf.gather(classes, indices)
+    print("Filters out ground truth boxes that are all zeros!")
+
     if self._include_mask:
       masks = tf.gather(masks, indices)
       # Transfer boxes to the original image space and do normalization.
@@ -265,7 +273,8 @@ class Parser(parser.Parser):
     if self._include_mask:
       labels['gt_masks'] = preprocess_ops.clip_or_pad_to_fixed_size(
           masks, self._max_num_instances, -1)
-
+      print("get gt_masks!")
+    print("---------------------- out official/vision/dataloaders/maskrcnn_input.StandardTrainer._parse_train_data() ----------------------")
     return image, labels
 
   def _parse_eval_data(self, data):

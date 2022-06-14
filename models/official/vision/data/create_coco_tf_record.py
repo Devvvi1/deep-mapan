@@ -220,6 +220,9 @@ def bbox_annotations_to_feature_dict(
           tfrecord_lib.convert_to_feature(data['ymin']),
       'image/object/bbox/ymax':
           tfrecord_lib.convert_to_feature(data['ymax']),
+      # 加一个bbox/class/label
+      'image/object/bbox/class/label':
+          tfrecord_lib.convert_to_feature(data['category_id']),
       'image/object/class/text':
           tfrecord_lib.convert_to_feature(data['category_names']),
       'image/object/class/label':
@@ -528,6 +531,7 @@ def _create_tf_record_from_coco_annotations(images_info_file,
 
   images = _load_images_info(images_info_file)
   print("num of images:", len(images))
+  print("-"*20, "include_masks:", include_masks, "-"*20)
 
   img_to_obj_annotation = None
   img_to_caption_annotation = None

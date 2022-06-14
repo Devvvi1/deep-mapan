@@ -171,6 +171,8 @@ def create_tf_example(image,
           dataset_util.float_list_feature(ymax),
       'image/object/class/text':
           dataset_util.bytes_list_feature(category_names),
+      'image/object/class/label':
+          dataset_util.int64_list_feature(category_ids),
       'image/object/is_crowd':
           dataset_util.int64_list_feature(is_crowd),
       'image/object/area':
@@ -223,6 +225,7 @@ def _create_tf_record_from_coco_annotations(annotations_file,
 
     total_num_annotations_skipped = 0
     print("num of images:", len(images))
+    print("-" * 20, "include_masks:", include_masks, "-" * 20)
     for idx, image in enumerate(images):
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))

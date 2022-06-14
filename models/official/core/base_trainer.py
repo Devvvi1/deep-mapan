@@ -54,14 +54,17 @@ class _AsyncTrainer(orbit.StandardTrainer, orbit.StandardEvaluator):
 
   def create_train_loop_fn(self):
     """Creates a eval loop from the given step function and options."""
+    print("---------------------- in official/core/base_trainer._AsyncTrainer.create_train_loop_fn() ----------------------")
     train_loop_fn = super().create_train_loop_fn()
     if getattr(self, "_is_async", False):
 
       def _async_loop_fn(iterator, num_steps):
         self._coordinator.schedule(train_loop_fn, args=(iterator, num_steps))
-
+      print("train_loop_fn is async!")
+      print("---------------------- out official/core/base_trainer._AsyncTrainer.create_train_loop_fn() ----------------------")
       return _async_loop_fn
     else:
+      print("---------------------- out official/core/base_trainer._AsyncTrainer.create_train_loop_fn() ----------------------")
       return train_loop_fn
 
   def create_eval_loop_fn(self, has_state: bool):
@@ -326,6 +329,7 @@ class Trainer(_AsyncTrainer):
 
   def train_loop_end(self):
     """See base class."""
+    print("---------------------- in official/core/base_trainer.Trainer.train_loop_end() ----------------------")
     self.join()
     logs = {}
     for metric in self.train_metrics + [self.train_loss]:
@@ -341,11 +345,12 @@ class Trainer(_AsyncTrainer):
         logs["learning_rate"] = self.optimizer.learning_rate(self.global_step)
     else:
       logs["learning_rate"] = self.optimizer.learning_rate
+    print("---------------------- out official/core/base_trainer.Trainer.train_loop_end() ----------------------")
     return logs
 
   def train_step(self, iterator):
     """See base class."""
-
+    print("---------------------- in official/core/base_trainer.Trainer.train_step() ----------------------")
     def step_fn(inputs):
       if self.config.runtime.enable_xla and (self.config.runtime.num_gpus > 0):
         task_train_step = tf.function(self.task.train_step, jit_compile=True)
@@ -361,6 +366,7 @@ class Trainer(_AsyncTrainer):
 
     self.strategy.run(
         step_fn, args=(next(iterator),), options=self._runtime_options)
+    print("---------------------- out official/core/base_trainer.Trainer.train_step() ----------------------")
 
   def eval_begin(self):
     """Sets up metrics."""

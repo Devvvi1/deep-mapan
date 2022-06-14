@@ -112,6 +112,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
     Returns:
       The train loop function, i.e. wrapper of multiple train steps.
     """
+    print("---------------------- in orbit/standard_runner.StandardTrainer.create_train_loop_fn() ----------------------")
     train_step_fn = self.train_step
     if self._train_options.use_tf_while_loop:
       loop_fn = loop_fns.create_tf_while_loop_fn(train_step_fn)
@@ -123,6 +124,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
       if self._train_options.use_tf_function:
         train_step_fn = tf.function(train_step_fn)
       loop_fn = loop_fns.create_loop_fn(train_step_fn)
+    print("---------------------- out orbit/standard_runner.StandardTrainer.create_train_loop_fn() ----------------------")
     return loop_fn
 
   def train(self, num_steps: tf.Tensor) -> Optional[runner.Output]:
@@ -135,15 +137,22 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
     Returns:
       The output of `train_loop_end`.
     """
+    print("---------------------- in orbit/standard_runner.StandardTrainer.train() ----------------------")
     self.train_loop_begin()
+    print("---------------------- after ST.train_loop_begin() ----------------------")
 
     if self._train_loop_fn is None:
       self._train_loop_fn = self.create_train_loop_fn()
+    print("---------------------- after ST.create_train_loop_fn() ----------------------")
 
     if self._train_iter is None:
       self._train_iter = tf.nest.map_structure(iter, self.train_dataset)
+    print("---------------------- after ST._train_iter ----------------------")
 
+    print("---------------------- in orbit/standard_runner.StandardTrainer._train_loop_fn ----------------------")
     self._train_loop_fn(self._train_iter, num_steps)
+    print("---------------------- out orbit/standard_runner.StandardTrainer._train_loop_fn ----------------------")
+    print("---------------------- out orbit/standard_runner.StandardTrainer.train() ----------------------")
     return self.train_loop_end()
 
   def train_loop_begin(self):
