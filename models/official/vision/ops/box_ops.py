@@ -589,13 +589,13 @@ def get_non_empty_box_indices(boxes):
                                     tf.greater(width, 0)))
   temp = indices
   print("indices.shape:", tf.shape(temp))
-  a, b, c, d = temp.get_shape().as_list()
-  print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
+  # a, b, c, d = temp.get_shape().as_list()
+  # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
 
   temp = indices[:, 0]
   print("indices[:, 0].shape:", tf.shape(temp))
-  a, b, c, d = temp.get_shape().as_list()
-  print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
+  # a, b, c, d = temp.get_shape().as_list()
+  # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
   return indices[:, 0]
 
 
