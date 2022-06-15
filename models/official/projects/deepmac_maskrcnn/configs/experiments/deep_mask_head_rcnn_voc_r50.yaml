@@ -11,11 +11,16 @@ task:
       type: 'resnet'
       resnet:
         model_id: 50
-  init_checkpoint: 'gs://tf_model_garden/vision/resnet50_imagenet/ckpt-28080'
+  init_checkpoint: 'gs://cloud-tpu-checkpoints/vision-2.0/resnet50_imagenet/ckpt-28080'
+  annotation_file: 'gs://mapan/tf_data/coco/instances_val2017.json'
   train_data:
-    global_batch_size: 64
+    global_batch_size: 32
+    input_path: 'gs://mapan/tf_data/coco/temp/train-?????-of-00256.tfrecord'
+    # label_map_path: 'gs://mapan/tf_data/coco/train/label_map.txt'
   validation_data:
     global_batch_size: 32
+    input_path: 'gs://mapan/tf_data/coco/val/val-?????-of-00032.tfrecord'
+    # label_map_path: 'gs://mapan/tf_data/coco/val/label_map.txt'
 
 trainer:
   optimizer_config:
@@ -23,5 +28,5 @@ trainer:
       stepwise:
         boundaries: [50000, 65000]
       type: 'stepwise'
-  train_steps: 70000
+  train_steps: 1000 # 70000
   validation_steps: 156  # 5000 / 32

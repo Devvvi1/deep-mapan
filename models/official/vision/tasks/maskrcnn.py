@@ -122,7 +122,8 @@ class MaskRCNNTask(base_task.Task):
       self,
       params: exp_cfg.DataConfig,
       input_context: Optional[tf.distribute.InputContext] = None,
-      dataset_fn: Optional[dataset_fn_lib.PossibleDatasetType] = None):
+      dataset_fn: Optional[dataset_fn_lib.PossibleDatasetType] = None
+  ) -> tf.data.Dataset:
     """Build input dataset."""
     decoder_cfg = params.decoder.get()
     if params.decoder.type == 'simple_decoder':
@@ -357,7 +358,7 @@ class MaskRCNNTask(base_task.Task):
     Returns:
       A dictionary of logs.
     """
-    print("---------------------- in tasks.maskrcnn.train_step() ----------------------")
+    print("-"*16, "in tasks.maskrcnn.train_step()")
     print("len(inputs):", len(inputs))
     images, labels = inputs
     labels_keys = list(labels.keys())
@@ -398,7 +399,7 @@ class MaskRCNNTask(base_task.Task):
     if metrics:
       for m in metrics:
         m.update_state(losses[m.name])
-    print("---------------------- out tasks.maskrcnn.train_step() ----------------------")
+    print("-"*16, "out tasks.maskrcnn.train_step()")
     return logs
 
   def validation_step(self,

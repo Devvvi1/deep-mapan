@@ -45,6 +45,8 @@ class DilatedResNet(hyperparams.Config):
   last_stage_repeats: int = 1
   se_ratio: float = 0.0
   stochastic_depth_drop_rate: float = 0.0
+  resnetd_shortcut: bool = False
+  replace_stem_max_pool: bool = False
 
 
 @dataclasses.dataclass
@@ -128,4 +130,3 @@ class Backbone(hyperparams.OneOfConfig):
   spinenet_mobile: SpineNetMobile = SpineNetMobile()
   mobilenet: MobileNet = MobileNet()
   mobiledet: MobileDet = MobileDet()
-
