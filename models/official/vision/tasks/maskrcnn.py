@@ -310,6 +310,7 @@ class MaskRCNNTask(base_task.Task):
     """Build detection metrics."""
     metrics = []
     if training:
+      print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_metrics()")
       metric_names = [
           'total_loss',
           'rpn_score_loss',
@@ -321,6 +322,7 @@ class MaskRCNNTask(base_task.Task):
       ]
       for name in metric_names:
         metrics.append(tf.keras.metrics.Mean(name, dtype=tf.float32))
+      print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_metrics()")
 
     else:
       if self._task_config.use_coco_metrics:

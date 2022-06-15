@@ -15,7 +15,7 @@ task:
   annotation_file: 'gs://mapan/tf_data/coco/instances_val2017.json'
   train_data:
     global_batch_size: 32
-    input_path: 'gs://mapan/tf_data/coco/temp/train-?????-of-00256.tfrecord'
+    input_path: 'gs://mapan/tf_data/coco/train/train-?????-of-00256.tfrecord'
     # label_map_path: 'gs://mapan/tf_data/coco/train/label_map.txt'
   validation_data:
     global_batch_size: 32
