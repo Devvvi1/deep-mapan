@@ -146,7 +146,7 @@ class Parser(parser.Parser):
         gt_masks: groundtrugh masks cropped by the bounding box and
           resized to a fixed size determined by mask_crop_size.
     """
-    print("---------------------- in official/vision/dataloaders/maskrcnn_input.StandardTrainer._parse_train_data() ----------------------")
+    print("---------------------- in official/vision/dataloaders/maskrcnn_input.Parser._parse_train_data() ----------------------")
     data_keys = list(data.keys())
     print("labels keys:", data_keys)
     classes = data['groundtruth_classes']
