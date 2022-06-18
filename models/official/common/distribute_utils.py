@@ -69,7 +69,7 @@ def _mirrored_cross_device_ops(all_reduce_alg, num_packs):
         "When used with `mirrored`, valid values for all_reduce_alg are "
         "[`nccl`, `hierarchical_copy`].  Supplied value: {}".format(
             all_reduce_alg))
-  print("all_reduce_alg use:", all_reduce_alg)
+  print("all_reduce_alg use:", mirrored_all_reduce_options[all_reduce_alg])
   cross_device_ops_class = mirrored_all_reduce_options[all_reduce_alg]
   return cross_device_ops_class(num_packs=num_packs)
 
@@ -168,6 +168,8 @@ def get_distribution_strategy(distribution_strategy="mirrored",
     if num_gpus == 0:
       devices = ["device:CPU:0"]
     else:
+      num_packs = num_gpus
+      print("num_packs:", num_packs)
       devices = ["device:GPU:%d" % i for i in range(num_gpus)]
     return tf.distribute.MirroredStrategy(
         devices=devices,
