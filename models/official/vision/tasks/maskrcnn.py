@@ -413,7 +413,7 @@ class MaskRCNNTask(base_task.Task):
         m.update_state(losses[m.name])
         temp = losses[m.name]
         print(temp)
-        print(temp.numpy())
+        # print(temp.numpy())
     print("-"*16, "out tasks.maskrcnn.train_step()")
     return logs
 
