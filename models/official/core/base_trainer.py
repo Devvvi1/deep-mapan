@@ -339,10 +339,13 @@ class Trainer(_AsyncTrainer):
     num = 0
     for metric in self.train_metrics + [self.train_loss]:
       num = num + 1
-      print("No.", num)
+      print("No.", num, metric.name)
+      if not metric:
+        print(metric.name, "is empty!")
       logs[metric.name] = metric.result()
-      temp = logs[metric.name].numpy()
-      print("metric.result().numpy() is ", temp)
+      # temp = logs[metric.name].get_shape().as_list()
+      # print("metric.shape is ", temp)
+      print("after metric.result()")
       metric.reset_states()
     print("after metric.reset_states()")
     if callable(self.optimizer.learning_rate):

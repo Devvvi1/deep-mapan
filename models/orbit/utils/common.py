@@ -61,6 +61,7 @@ def make_distributed_dataset(strategy, dataset_or_fn, *args, **kwargs):
   Returns:
     A distributed Dataset.
   """
+  print("orbit/utils/make_distributed_dataset()!")
   if strategy is None:
     strategy = tf.distribute.get_strategy()
 

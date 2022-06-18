@@ -587,17 +587,14 @@ def get_non_empty_box_indices(boxes):
   width = boxes[:, 3] - boxes[:, 1]
   indices = tf.where(tf.logical_and(tf.greater(height, 0),
                                     tf.greater(width, 0)))
-  temp = indices
-  print("indices.shape:", tf.shape(temp))
-  print(temp.get_shape().as_list())
-  # a, b, c, d = temp.get_shape().as_list()
-  # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
+  # temp = indices
+  # print("indices.shape:", tf.shape(temp))
+  # print(temp.get_shape().as_list())
 
-  temp = indices[:, 0]
-  print("indices[:, 0].shape:", tf.shape(temp))
-  print(temp.get_shape().as_list())
-  # a, b, c, d = temp.get_shape().as_list()
-  # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
+  # temp = indices[:, 0]
+  # print("indices[:, 0].shape:", tf.shape(temp))
+  # print(temp.get_shape().as_list())
+
   return indices[:, 0]
 
 

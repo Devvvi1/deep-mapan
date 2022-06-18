@@ -173,6 +173,8 @@ class Parser(parser.Parser):
     # Gets original image and its size.
     image = data['image']
     image_shape = tf.shape(image)[0:2]
+    print("image.shape:", tf.shape(image))
+    print(image.get_shape().as_list())
 
     # Normalizes image with mean and std pixel values.
     image = preprocess_ops.normalize_image(image)
@@ -189,7 +191,7 @@ class Parser(parser.Parser):
     # Converts boxes from normalized coordinates to pixel coordinates.
     # Now the coordinates of boxes are w.r.t. the original image.
     boxes = box_ops.denormalize_boxes(boxes, image_shape)
-    print("Converts boxes!")
+    # print("Converts boxes!")
 
     # Resizes and crops image.
     image, image_info = preprocess_ops.resize_and_crop_image(
@@ -207,13 +209,13 @@ class Parser(parser.Parser):
     offset = image_info[3, :]
     boxes = preprocess_ops.resize_and_crop_boxes(
         boxes, image_scale, image_info[1, :], offset)
-    print("Resizes and crops boxes!")
+    # print("Resizes and crops boxes!")
 
     # Filters out ground truth boxes that are all zeros.
     indices = box_ops.get_non_empty_box_indices(boxes)
     boxes = tf.gather(boxes, indices)
     classes = tf.gather(classes, indices)
-    print("Filters out ground truth boxes that are all zeros!")
+    # print("Filters out ground truth boxes that are all zeros!")
 
     if self._include_mask:
       masks = tf.gather(masks, indices)
