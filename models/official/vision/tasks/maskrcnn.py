@@ -230,6 +230,7 @@ class MaskRCNNTask(base_task.Task):
       # Classes with ID=0 are ignored by mask_loss_fn in loss computation.
       mask_class_targets = zero_out_disallowed_class_ids(
           mask_class_targets, self.task_config.allowed_mask_class_ids)
+      print("allowed_mask_class_ids is not None!")
     return tf.reduce_mean(
         mask_loss_fn(outputs['mask_outputs'], outputs['mask_targets'],
                      mask_class_targets))
@@ -239,10 +240,12 @@ class MaskRCNNTask(base_task.Task):
                    labels: Mapping[str, Any],
                    aux_losses: Optional[Any] = None) -> Dict[str, tf.Tensor]:
     """Build Mask R-CNN losses."""
+    print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_losses()")
     rpn_score_loss, rpn_box_loss = self._build_rpn_losses(outputs, labels)
     frcnn_cls_loss, frcnn_box_loss = self._build_frcnn_losses(outputs, labels)
     if self.task_config.model.include_mask:
       mask_loss = self._build_mask_loss(outputs)
+      print("tasks/maskrcnn.build_losses() include mask!")
     else:
       mask_loss = tf.constant(0.0, dtype=tf.float32)
 
@@ -260,6 +263,8 @@ class MaskRCNNTask(base_task.Task):
       total_loss = model_loss + reg_loss
 
     total_loss = params.losses.loss_weight * total_loss
+    temp = total_loss.numpy()
+    print("total_loss is ", temp)
     losses = {
         'total_loss': total_loss,
         'rpn_score_loss': rpn_score_loss,
@@ -269,12 +274,15 @@ class MaskRCNNTask(base_task.Task):
         'mask_loss': mask_loss,
         'model_loss': model_loss,
     }
+    print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_losses()")
     return losses
 
   def _build_coco_metrics(self):
     """Build COCO metrics evaluator."""
+    print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_coco_metrics()")
     if (not self._task_config.model.include_mask
        ) or self._task_config.annotation_file:
+      print("get annotation_file!")
       self.coco_metric = coco_evaluator.COCOEvaluator(
           annotation_file=self._task_config.annotation_file,
           include_mask=self._task_config.model.include_mask,
@@ -305,6 +313,7 @@ class MaskRCNNTask(base_task.Task):
           annotation_file=annotation_path,
           include_mask=self._task_config.model.include_mask,
           per_category_metrics=self._task_config.per_category_metrics)
+    print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_coco_metrics()")
 
   def build_metrics(self, training: bool = True):
     """Build detection metrics."""
@@ -400,6 +409,7 @@ class MaskRCNNTask(base_task.Task):
 
     if metrics:
       for m in metrics:
+        print("m.update_state(", m.name, ")!")
         m.update_state(losses[m.name])
     print("-"*16, "out tasks.maskrcnn.train_step()")
     return logs

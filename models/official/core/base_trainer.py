@@ -203,6 +203,10 @@ class Trainer(_AsyncTrainer):
     self.init_async()
 
     if train:
+      if model_metrics:
+        print("model_metrics is not []!")
+      else:
+        print("model_metrics is []!")
       self._train_metrics = self.task.build_metrics(
           training=True) + model_metrics
       train_dataset = train_dataset or self.distribute_dataset(
@@ -337,8 +341,9 @@ class Trainer(_AsyncTrainer):
       num = num + 1
       print("No.", num)
       logs[metric.name] = metric.result()
-      print("after metric.result()")
-      metric.reset_state()
+      temp = logs[metric.name].numpy()
+      print("metric.result().numpy() is ", temp)
+      metric.reset_states()
     print("after metric.reset_states()")
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
@@ -376,7 +381,7 @@ class Trainer(_AsyncTrainer):
   def eval_begin(self):
     """Sets up metrics."""
     for metric in self.validation_metrics + [self.validation_loss]:
-      metric.reset_state()
+      metric.reset_states()
     # Swaps weights to test on weights moving average.
     if self.optimizer and isinstance(self.optimizer,
                                      optimization.ExponentialMovingAverage):
