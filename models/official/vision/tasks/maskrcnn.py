@@ -263,8 +263,8 @@ class MaskRCNNTask(base_task.Task):
       total_loss = model_loss + reg_loss
 
     total_loss = params.losses.loss_weight * total_loss
-    temp = total_loss.numpy()
-    print("total_loss is ", temp)
+    # temp = total_loss.numpy()
+    # print("total_loss is ", temp)
     losses = {
         'total_loss': total_loss,
         'rpn_score_loss': rpn_score_loss,
