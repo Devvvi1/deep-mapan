@@ -127,13 +127,13 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     a, b, c, d = images.get_shape().as_list()
     print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
 
-    print("gt_boxes.shape:", tf.shape(gt_boxes))
-    print(gt_boxes.get_shape().as_list())
+    # print("gt_boxes.shape:", tf.shape(gt_boxes))
+    # print(gt_boxes.get_shape().as_list())
     # a, b, c, d = gt_boxes.get_shape().as_list()
     # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
 
-    print("gt_masks.shape:", tf.shape(gt_masks))
-    print(gt_masks.get_shape().as_list())
+    # print("gt_masks.shape:", tf.shape(gt_masks))
+    # print(gt_masks.get_shape().as_list())
     # a, b, c, d = gt_masks.get_shape().as_list()
     # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
     model_outputs, intermediate_outputs = self._call_box_outputs(

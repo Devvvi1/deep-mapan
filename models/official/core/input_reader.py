@@ -509,5 +509,5 @@ class InputReader:
       options.experimental_deterministic = self._deterministic
       dataset = dataset.with_options(options)
     print("self._global_batch_size: ", self._global_batch_size)
-    print("-" * 4, "in official/core/input_reader.InputReader.read()")
+    print("-" * 4, "out official/core/input_reader.InputReader.read()")
     return dataset.prefetch(self._prefetch_buffer_size)

@@ -69,6 +69,7 @@ def _mirrored_cross_device_ops(all_reduce_alg, num_packs):
         "When used with `mirrored`, valid values for all_reduce_alg are "
         "[`nccl`, `hierarchical_copy`].  Supplied value: {}".format(
             all_reduce_alg))
+  print("all_reduce_alg use:", all_reduce_alg)
   cross_device_ops_class = mirrored_all_reduce_options[all_reduce_alg]
   return cross_device_ops_class(num_packs=num_packs)
 

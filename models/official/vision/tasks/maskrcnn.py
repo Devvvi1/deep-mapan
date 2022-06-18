@@ -370,10 +370,10 @@ class MaskRCNNTask(base_task.Task):
       A dictionary of logs.
     """
     print("-"*16, "in tasks.maskrcnn.train_step()")
-    print("len(inputs):", len(inputs))
+    # print("len(inputs):", len(inputs))
     images, labels = inputs
-    labels_keys = list(labels.keys())
-    print("labels keys:", labels_keys)
+    # labels_keys = list(labels.keys())
+    # print("labels keys:", labels_keys)
     num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
     with tf.GradientTape() as tape:
       outputs = model(
@@ -409,10 +409,10 @@ class MaskRCNNTask(base_task.Task):
 
     if metrics:
       for m in metrics:
-        print("m.update_state(", m.name, "):")
+        print("m.update_state(", m.name, ")")
         m.update_state(losses[m.name])
-        temp = losses[m.name]
-        print(temp)
+        # temp = losses[m.name]
+        # print(temp)
         # print(temp.numpy())
     print("-"*16, "out tasks.maskrcnn.train_step()")
     return logs
