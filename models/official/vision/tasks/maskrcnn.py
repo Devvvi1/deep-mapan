@@ -127,6 +127,9 @@ class MaskRCNNTask(base_task.Task):
     """Build input dataset."""
     decoder_cfg = params.decoder.get()
     if params.decoder.type == 'simple_decoder':
+      print("MaskRCNNTask.build_inputs():")
+      print("include_mask:", self._task_config.model.include_mask)
+      print("regenerate_source_id:", decoder_cfg.regenerate_source_id)
       decoder = tf_example_decoder.TfExampleDecoder(
           include_mask=self._task_config.model.include_mask,
           regenerate_source_id=decoder_cfg.regenerate_source_id,

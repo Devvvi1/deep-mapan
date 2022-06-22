@@ -126,6 +126,7 @@ class TfExampleDecoder(decoder.Decoder):
             [None, None, None].
         - groundtruth_instance_masks_png: a string tensor of shape [None].
     """
+    print("-" * 4, "in official/vision/datatloaders.TfExampleDecoder.decode()")
     parsed_tensors = tf.io.parse_single_example(
         serialized=serialized_example, features=self._keys_to_features)
     for k in parsed_tensors:
@@ -136,7 +137,8 @@ class TfExampleDecoder(decoder.Decoder):
         else:
           parsed_tensors[k] = tf.sparse.to_dense(
               parsed_tensors[k], default_value=0)
-
+    print("parsed_tensors['image/source_id']: ", parsed_tensors['image/source_id'])
+    print("parsed_tensors['image/source_id']: ", parsed_tensors['image/source_id'].bytes_list.value)
     if self._regenerate_source_id:
       source_id = _generate_source_id(parsed_tensors['image/encoded'])
     else:
@@ -173,4 +175,5 @@ class TfExampleDecoder(decoder.Decoder):
           'groundtruth_instance_masks': masks,
           'groundtruth_instance_masks_png': parsed_tensors['image/object/mask'],
       })
+    print("-" * 4, "out official/vision/datatloaders.TfExampleDecoder.decode()")
     return decoded_tensors
