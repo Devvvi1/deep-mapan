@@ -192,7 +192,7 @@ class OptimizerFactory:
       `tf.keras.optimizers.Optimizer` or
       `tf.keras.optimizers.experimental.Optimizer` instance.
     """
-
+    print("-" * 4, "in official/modeling/optimization/optimizer_factory.build_optimizer()")
     optimizer_dict = self._optimizer_config.as_dict()
     ## Delete clipnorm, clipvalue, global_clipnorm if None
     if optimizer_dict['clipnorm'] is None:
@@ -207,7 +207,7 @@ class OptimizerFactory:
       optimizer_dict['gradient_aggregator'] = gradient_aggregator
     if gradient_transformers is not None:
       optimizer_dict['gradient_transformers'] = gradient_transformers
-
+    print("self._optimizer_type: ", self._optimizer_type)
     optimizer = OPTIMIZERS_CLS[self._optimizer_type](**optimizer_dict)
 
     if self._use_ema:
@@ -227,5 +227,5 @@ class OptimizerFactory:
       else:
         raise TypeError('OptimizerFactory.build_optimizer returning a '
                         'non-optimizer object: {}'.format(optimizer))
-
+    print("-" * 4, "out official/modeling/optimization/optimizer_factory.build_optimizer()")
     return optimizer

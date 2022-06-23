@@ -18,7 +18,7 @@ task:
     input_path: 'gs://mapan/tf_data/coco/train/train-?????-of-00256.tfrecord'
     # label_map_path: 'gs://mapan/tf_data/coco/train/label_map.txt'
   validation_data:
-    global_batch_size: 32
+    global_batch_size: 8
     input_path: 'gs://mapan/tf_data/coco/val/val-?????-of-00032.tfrecord'
     # label_map_path: 'gs://mapan/tf_data/coco/val/label_map.txt'
 
@@ -28,5 +28,5 @@ trainer:
       stepwise:
         boundaries: [50000, 65000]
       type: 'stepwise'
-  train_steps: 70000 # 70000
+  train_steps: 560000 # 70000
   validation_steps: 156  # 5000 / 32

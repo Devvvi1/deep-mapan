@@ -351,9 +351,12 @@ class Trainer(_AsyncTrainer):
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
       # So just to be safe here.
+      print("in callable!")
       if hasattr(self.optimizer, "iterations"):
+        print("in iterations")
         logs["learning_rate"] = self.optimizer.learning_rate(
             self.optimizer.iterations)
+        print("after iterations")
       else:
         logs["learning_rate"] = self.optimizer.learning_rate(self.global_step)
     else:
