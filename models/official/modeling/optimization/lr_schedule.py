@@ -68,7 +68,7 @@ def _make_offset_wrapper(new_class_name: str, base_lr_class):
     return base_lr_class.__call__(self, step)
 
   # pylint: enable=protected-access,pointless-statement
-
+  print("in _make_offset_wrapper(", new_class_name, ")")
   return type(
       new_class_name, (base_lr_class,), {
           "base_lr_class": base_lr_class,
@@ -121,6 +121,9 @@ class LinearWarmup(tf.keras.optimizers.schedules.LearningRateSchedule):
     self._after_warmup_lr_sched = after_warmup_lr_sched
     self._warmup_steps = warmup_steps
     self._init_warmup_lr = warmup_learning_rate
+    print("warmup_steps: ", warmup_steps)
+    print("warmup_learning_rate: ", warmup_learning_rate)
+    print("name: ", name)
     if isinstance(after_warmup_lr_sched,
                   tf.keras.optimizers.schedules.LearningRateSchedule):
       self._final_warmup_lr = after_warmup_lr_sched(warmup_steps)
@@ -128,7 +131,7 @@ class LinearWarmup(tf.keras.optimizers.schedules.LearningRateSchedule):
       self._final_warmup_lr = tf.cast(after_warmup_lr_sched, dtype=tf.float32)
 
   def __call__(self, step: int):
-
+    print("step: ", step)
     global_step = tf.cast(step, dtype=tf.float32)
 
     linear_warmup_lr = (

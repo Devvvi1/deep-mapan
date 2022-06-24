@@ -221,8 +221,8 @@ def bbox_annotations_to_feature_dict(
       'image/object/bbox/ymax':
           tfrecord_lib.convert_to_feature(data['ymax']),
       # 加一个bbox/class/label
-      'image/object/bbox/class/label':
-          tfrecord_lib.convert_to_feature(data['category_id']),
+      # 'image/object/bbox/class/label':
+      #     tfrecord_lib.convert_to_feature(data['category_id']),
       'image/object/class/text':
           tfrecord_lib.convert_to_feature(data['category_names']),
       'image/object/class/label':

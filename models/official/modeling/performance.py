@@ -28,6 +28,8 @@ def configure_optimizer(optimizer,
                     '`configure_optimizer`. Please remove the usage.')
   del use_graph_rewrite
   if use_float16:
+    print("use float 16!")
+    print("loss_scale: ", loss_scale)
     if loss_scale in (None, 'dynamic'):
       optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer)
     else:

@@ -196,6 +196,7 @@ class ExponentialMovingAverage(tf.keras.optimizers.Optimizer):
 
   @property
   def iterations(self):
+    print("ema_optimizer.iterations()!")
     return self._optimizer.iterations
 
   @iterations.setter
@@ -220,10 +221,12 @@ class ExponentialMovingAverage(tf.keras.optimizers.Optimizer):
 
   @property
   def learning_rate(self):
+    print("ema_optimizer.learning_rate()!")
     return self._optimizer._get_hyper('learning_rate')
 
   @learning_rate.setter
   def learning_rate(self, learning_rate):  # pylint: disable=redefined-outer-name
+    print("ema_optimizer.learning_rate(", learning_rate, ")!")
     self._optimizer._set_hyper('learning_rate', learning_rate)
 
   def _resource_apply_dense(self, grad, var):

@@ -71,8 +71,8 @@ def _mirrored_cross_device_ops(all_reduce_alg, num_packs):
             all_reduce_alg))
   print("all_reduce_alg use:", mirrored_all_reduce_options[all_reduce_alg])
   cross_device_ops_class = mirrored_all_reduce_options[all_reduce_alg]
-  # return cross_device_ops_class(num_packs=num_packs)
-  return cross_device_ops_class()
+  return cross_device_ops_class(num_packs=num_packs)
+  # return cross_device_ops_class()
 
 
 def tpu_initialize(tpu_address):
