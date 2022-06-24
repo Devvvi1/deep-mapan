@@ -126,6 +126,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     print("images.shape:", tf.shape(images))
     a, b, c, d = images.get_shape().as_list()
     print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
+    print("images.type:", type(images))
 
     # print("gt_boxes.shape:", tf.shape(gt_boxes))
     # print(gt_boxes.get_shape().as_list())

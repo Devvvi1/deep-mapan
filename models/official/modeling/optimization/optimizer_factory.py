@@ -226,6 +226,7 @@ class OptimizerFactory:
       # tf.keras.optimizers.experimental only exist in tf-nightly.
       # The following check makes sure the function wont' break in older TF
       # version because of missing the experimental package.
+      print("optimizer is not a tf.keras.optimizers.Optimizer!")
       if hasattr(tf.keras.optimizers, 'experimental'):
         if not isinstance(optimizer,
                           tf.keras.optimizers.experimental.Optimizer):
