@@ -137,8 +137,8 @@ class LinearWarmup(tf.keras.optimizers.schedules.LearningRateSchedule):
     linear_warmup_lr = (
         self._init_warmup_lr + global_step / self._warmup_steps *
         (self._final_warmup_lr - self._init_warmup_lr))
-    if tf.math.equal(linear_warmup_lr, self._init_warmup_lr):
-        print("linear_warmup_lr is equal to self._init_warmup_lr!")
+    # if tf.math.equal(linear_warmup_lr, self._init_warmup_lr):
+    #     print("linear_warmup_lr is equal to self._init_warmup_lr!")
     print("linear_warmup_lr: ", linear_warmup_lr)
     if isinstance(self._after_warmup_lr_sched,
                   tf.keras.optimizers.schedules.LearningRateSchedule):
