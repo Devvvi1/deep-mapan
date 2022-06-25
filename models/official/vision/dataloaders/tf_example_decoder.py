@@ -137,11 +137,11 @@ class TfExampleDecoder(decoder.Decoder):
         else:
           parsed_tensors[k] = tf.sparse.to_dense(
               parsed_tensors[k], default_value=0)
-    print("parsed_tensors['image/source_id']: ", parsed_tensors['image/source_id'])
 
     if self._regenerate_source_id:
       source_id = _generate_source_id(parsed_tensors['image/encoded'])
     else:
+      print("parsed_tensors['image/source_id']: ", parsed_tensors['image/source_id'])
       source_id = tf.cond(
           tf.greater(tf.strings.length(parsed_tensors['image/source_id']), 0),
           lambda: parsed_tensors['image/source_id'],

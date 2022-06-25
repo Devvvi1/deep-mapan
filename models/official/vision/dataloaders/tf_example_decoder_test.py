@@ -26,9 +26,9 @@ from official.vision.dataloaders import tfexample_utils
 class TfExampleDecoderTest(tf.test.TestCase, parameterized.TestCase):
 
   @parameterized.parameters(
-      (100, 100, 0, True),
-      (100, 100, 1, True),
-      (100, 100, 2, True),
+      (100, 100, 0, True), # F
+      (100, 100, 1, True), # F
+      (100, 100, 2, True), # F
       (100, 100, 0, False),
       (100, 100, 1, False),
       (100, 100, 2, False),
@@ -38,6 +38,7 @@ class TfExampleDecoderTest(tf.test.TestCase, parameterized.TestCase):
                         image_width,
                         num_instances,
                         regenerate_source_id):
+    print("-"*30, "test_result_shape()", "-"*30)
     decoder = tf_example_decoder.TfExampleDecoder(
         include_mask=True, regenerate_source_id=regenerate_source_id)
 
@@ -72,6 +73,7 @@ class TfExampleDecoderTest(tf.test.TestCase, parameterized.TestCase):
         (num_instances,), results['groundtruth_instance_masks_png'].shape)
 
   def test_result_content(self):
+    print("-" * 30, "test_result_content()", "-" * 30)
     decoder = tf_example_decoder.TfExampleDecoder(include_mask=True)
 
     image_content = [[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -172,6 +174,7 @@ class TfExampleDecoderTest(tf.test.TestCase, parameterized.TestCase):
         masks, results['groundtruth_instance_masks_png'])
 
   def test_handling_missing_fields(self):
+    print("-" * 30, "test_handling_missing_fields()", "-" * 30)
     decoder = tf_example_decoder.TfExampleDecoder(include_mask=True)
 
     image_content = [[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
