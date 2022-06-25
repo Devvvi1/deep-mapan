@@ -148,7 +148,7 @@ def write_tf_record_dataset(output_path, annotation_iterator,
   ]
 
   total_num_annotations_skipped = 0
-
+  print("multiple_processes:", multiple_processes)
   if multiple_processes is None or multiple_processes > 0:
     pool = mp.Pool(
         processes=multiple_processes)

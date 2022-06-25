@@ -355,6 +355,7 @@ class Trainer(_AsyncTrainer):
       flag = True
       if hasattr(self.optimizer, "iterations") and flag:
         print("has iterations")
+        print("self.optimizer.iterations:", self.optimizer.iterations)
         logs["learning_rate"] = self.optimizer.learning_rate(self.optimizer.iterations)
         print("after iterations")
       else:

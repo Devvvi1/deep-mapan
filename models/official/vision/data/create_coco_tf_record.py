@@ -384,29 +384,29 @@ def _load_object_annotations(object_annotations_file, image_dirs):
       image_file_names.append(image_file_name)
       missing_annotation_count += 1
 
-  # 根据丢失bboxes的image file_name，生成包含移动GCS中对应图像的指令的.sh脚本
-  ROOT_DIR = "./official/vision/data"
-  OLD_PATH = str(image_dirs).replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n') + '/'
-  NEW_PATH = OLD_PATH.replace('train2017', 'train2017_bbox').replace('val2017', 'val2017_bbox')
-  print("OLD_PATH is ", OLD_PATH)
-  print("NEW_PATH is ", NEW_PATH)
-
-  TXT_PATH = os.path.join(ROOT_DIR, "images_missing_bbox.sh")
-  f = open(TXT_PATH, 'w')
-  # f.write("export NEW_PATH=${" + NEW_PATH + "}" + "\n")
-  # NEW_PATH = "${NEW_PATH}"
-  for j in image_file_names:
-      j = str(j)
-      j = j.replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n')
-      # print(j)
-      if len(j) < 12:
-          j = j.zfill(12)
-      name = j
-      command = "gsutil mv " + OLD_PATH + name + " " + NEW_PATH + name
-      print(command)
-      f.write(command + "\n")
-  print("Finished .sh")
-  f.close()
+  # # 根据丢失bboxes的image file_name，生成包含移动GCS中对应图像的指令的.sh脚本
+  # ROOT_DIR = "./official/vision/data"
+  # OLD_PATH = str(image_dirs).replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n') + '/'
+  # NEW_PATH = OLD_PATH.replace('train2017', 'train2017_bbox').replace('val2017', 'val2017_bbox')
+  # print("OLD_PATH is ", OLD_PATH)
+  # print("NEW_PATH is ", NEW_PATH)
+  #
+  # TXT_PATH = os.path.join(ROOT_DIR, "images_missing_bbox.sh")
+  # f = open(TXT_PATH, 'w')
+  # # f.write("export NEW_PATH=${" + NEW_PATH + "}" + "\n")
+  # # NEW_PATH = "${NEW_PATH}"
+  # for j in image_file_names:
+  #     j = str(j)
+  #     j = j.replace('[', '').replace('b', '').replace('\'', '').replace('\'', '').replace(']', '').strip('\n')
+  #     # print(j)
+  #     if len(j) < 12:
+  #         j = j.zfill(12)
+  #     name = j
+  #     command = "gsutil mv " + OLD_PATH + name + " " + NEW_PATH + name
+  #     print(command)
+  #     f.write(command + "\n")
+  # print("Finished .sh")
+  # f.close()
 
   logging.info('%d images are missing bboxes.', missing_annotation_count)
 
