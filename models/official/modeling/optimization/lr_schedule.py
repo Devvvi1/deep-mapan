@@ -131,7 +131,7 @@ class LinearWarmup(tf.keras.optimizers.schedules.LearningRateSchedule):
       self._final_warmup_lr = tf.cast(after_warmup_lr_sched, dtype=tf.float32)
 
   def __call__(self, step: int):
-    print("step: ", step)
+    # print("step: ", step)
     global_step = tf.cast(step, dtype=tf.float32)
 
     linear_warmup_lr = (
@@ -139,7 +139,7 @@ class LinearWarmup(tf.keras.optimizers.schedules.LearningRateSchedule):
         (self._final_warmup_lr - self._init_warmup_lr))
     # if tf.math.equal(linear_warmup_lr, self._init_warmup_lr):
     #     print("linear_warmup_lr is equal to self._init_warmup_lr!")
-    print("linear_warmup_lr: ", linear_warmup_lr)
+    # print("linear_warmup_lr: ", linear_warmup_lr)
     if isinstance(self._after_warmup_lr_sched,
                   tf.keras.optimizers.schedules.LearningRateSchedule):
       print("self._name: ", self._name)

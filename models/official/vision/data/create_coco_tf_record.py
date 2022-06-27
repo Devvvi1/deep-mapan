@@ -379,8 +379,8 @@ def _load_object_annotations(object_annotations_file, image_dirs):
     image_id = image['id']
     image_file_name = image['file_name']
     if image_id not in img_to_obj_annotation:
-      print("id of image missing bboxes:", image_id)
-      print("filename of image missing bboxes:", image_file_name)
+      # print("id of image missing bboxes:", image_id)
+      # print("filename of image missing bboxes:", image_file_name)
       image_file_names.append(image_file_name)
       missing_annotation_count += 1
 
