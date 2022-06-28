@@ -348,6 +348,7 @@ class Trainer(_AsyncTrainer):
       print("after metric.result()")
       metric.reset_states()
     print("after metric.reset_states()")
+    print(logs)
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
       # So just to be safe here.
@@ -362,6 +363,7 @@ class Trainer(_AsyncTrainer):
         print("has no iterations")
         logs["learning_rate"] = self.optimizer.learning_rate(self.global_step)
     else:
+      print("not callable!")
       logs["learning_rate"] = self.optimizer.learning_rate
     print("-"*4, "out official/core/base_trainer.T.train_loop_end()")
     return logs
