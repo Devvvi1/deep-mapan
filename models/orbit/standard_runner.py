@@ -163,7 +163,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
 
     Note that this method is called before dataset iterator creation.
     """
-    print("-" * 4, "in orbit/standard_runner.ST.train_loop_begin()")
+    # print("-" * 4, "in orbit/standard_runner.ST.train_loop_begin()")
     pass
 
   @abc.abstractmethod

@@ -243,7 +243,7 @@ class MaskRCNNTask(base_task.Task):
                    labels: Mapping[str, Any],
                    aux_losses: Optional[Any] = None) -> Dict[str, tf.Tensor]:
     """Build Mask R-CNN losses."""
-    print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_losses()")
+    # print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_losses()")
     rpn_score_loss, rpn_box_loss = self._build_rpn_losses(outputs, labels)
     frcnn_cls_loss, frcnn_box_loss = self._build_frcnn_losses(outputs, labels)
     if self.task_config.model.include_mask:
@@ -277,7 +277,7 @@ class MaskRCNNTask(base_task.Task):
         'mask_loss': mask_loss,
         'model_loss': model_loss,
     }
-    print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_losses()")
+    # print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_losses()")
     return losses
 
   def _build_coco_metrics(self):
@@ -322,7 +322,7 @@ class MaskRCNNTask(base_task.Task):
     """Build detection metrics."""
     metrics = []
     if training:
-      print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_metrics()")
+      # print("-" * 4, "in tasks/maskrcnn.MaskRCNNTask.build_metrics()")
       metric_names = [
           'total_loss',
           'rpn_score_loss',
@@ -334,7 +334,7 @@ class MaskRCNNTask(base_task.Task):
       ]
       for name in metric_names:
         metrics.append(tf.keras.metrics.Mean(name, dtype=tf.float32))
-      print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_metrics()")
+      # print("-" * 4, "out tasks/maskrcnn.MaskRCNNTask.build_metrics()")
 
     else:
       if self._task_config.use_coco_metrics:

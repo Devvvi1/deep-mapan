@@ -347,8 +347,8 @@ class Trainer(_AsyncTrainer):
       # print("metric.shape is ", temp)
       # print("after metric.result()")
       metric.reset_states()
-    # print("after metric.reset_states()")
-    print(logs)
+    print("after metric.reset_states()")
+    # print(logs)
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
       # So just to be safe here.
