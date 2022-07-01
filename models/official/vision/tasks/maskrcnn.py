@@ -127,9 +127,9 @@ class MaskRCNNTask(base_task.Task):
     """Build input dataset."""
     decoder_cfg = params.decoder.get()
     if params.decoder.type == 'simple_decoder':
-      print("MaskRCNNTask.build_inputs():")
-      print("include_mask:", self._task_config.model.include_mask)
-      print("regenerate_source_id:", decoder_cfg.regenerate_source_id)
+      # print("MaskRCNNTask.build_inputs():")
+      # print("include_mask:", self._task_config.model.include_mask)
+      # print("regenerate_source_id:", decoder_cfg.regenerate_source_id)
       decoder = tf_example_decoder.TfExampleDecoder(
           include_mask=self._task_config.model.include_mask,
           regenerate_source_id=decoder_cfg.regenerate_source_id,
@@ -233,7 +233,7 @@ class MaskRCNNTask(base_task.Task):
       # Classes with ID=0 are ignored by mask_loss_fn in loss computation.
       mask_class_targets = zero_out_disallowed_class_ids(
           mask_class_targets, self.task_config.allowed_mask_class_ids)
-      print("allowed_mask_class_ids is not None!")
+      # print("allowed_mask_class_ids is not None!")
     return tf.reduce_mean(
         mask_loss_fn(outputs['mask_outputs'], outputs['mask_targets'],
                      mask_class_targets))
@@ -248,7 +248,7 @@ class MaskRCNNTask(base_task.Task):
     frcnn_cls_loss, frcnn_box_loss = self._build_frcnn_losses(outputs, labels)
     if self.task_config.model.include_mask:
       mask_loss = self._build_mask_loss(outputs)
-      print("tasks/maskrcnn.build_losses() include mask!")
+      # print("tasks/maskrcnn.build_losses() include mask!")
     else:
       mask_loss = tf.constant(0.0, dtype=tf.float32)
 

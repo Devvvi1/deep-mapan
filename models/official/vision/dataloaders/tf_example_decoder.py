@@ -101,7 +101,7 @@ class TfExampleDecoder(decoder.Decoder):
     height = parsed_tensors['image/height']
     width = parsed_tensors['image/width']
     masks = parsed_tensors['image/object/mask']
-    print("_decode_masks()!")
+    # print("_decode_masks()!")
     return tf.cond(
         pred=tf.greater(tf.size(input=masks), 0),
         true_fn=lambda: tf.map_fn(_decode_png_mask, masks, dtype=tf.float32),
@@ -127,7 +127,7 @@ class TfExampleDecoder(decoder.Decoder):
             [None, None, None].
         - groundtruth_instance_masks_png: a string tensor of shape [None].
     """
-    print("-" * 4, "in official/vision/datatloaders.TfExampleDecoder.decode()")
+    # print("-" * 4, "in official/vision/datatloaders.TfExampleDecoder.decode()")
     parsed_tensors = tf.io.parse_single_example(
         serialized=serialized_example, features=self._keys_to_features)
     for k in parsed_tensors:
@@ -142,7 +142,7 @@ class TfExampleDecoder(decoder.Decoder):
     if self._regenerate_source_id:
       source_id = _generate_source_id(parsed_tensors['image/encoded'])
     else:
-      print("parsed_tensors['image/source_id']: ", parsed_tensors['image/source_id'])
+      # print("parsed_tensors['image/source_id']: ", parsed_tensors['image/source_id'])
       source_id = tf.cond(
           tf.greater(tf.strings.length(parsed_tensors['image/source_id']), 0),
           lambda: parsed_tensors['image/source_id'],
@@ -176,5 +176,5 @@ class TfExampleDecoder(decoder.Decoder):
           'groundtruth_instance_masks': masks,
           'groundtruth_instance_masks_png': parsed_tensors['image/object/mask'],
       })
-    print("-" * 4, "out official/vision/datatloaders.TfExampleDecoder.decode()")
+    # print("-" * 4, "out official/vision/datatloaders.TfExampleDecoder.decode()")
     return decoded_tensors

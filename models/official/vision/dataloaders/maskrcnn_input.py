@@ -148,13 +148,13 @@ class Parser(parser.Parser):
     """
     print("---------------------- in official/vision/dataloaders/maskrcnn_input.Parser._parse_train_data() ----------------------")
     data_keys = list(data.keys())
-    print("labels keys:", data_keys)
-    print("data['source_id']:", data['source_id'])
+    # print("labels keys:", data_keys)
+    # print("data['source_id']:", data['source_id'])
     classes = data['groundtruth_classes']
     boxes = data['groundtruth_boxes']
     if self._include_mask:
       masks = data['groundtruth_instance_masks']
-      print("data has groundtruth_instance_masks!")
+      # print("data has groundtruth_instance_masks!")
 
     is_crowds = data['groundtruth_is_crowd']
     # Skips annotations with `is_crowd` = True.
@@ -173,8 +173,8 @@ class Parser(parser.Parser):
     # Gets original image and its size.
     image = data['image']
     image_shape = tf.shape(image)[0:2]
-    print("image.shape:", tf.shape(image))
-    print(image.get_shape().as_list())
+    # print("image.shape:", tf.shape(image))
+    # print(image.get_shape().as_list())
 
     # Normalizes image with mean and std pixel values.
     image = preprocess_ops.normalize_image(image)

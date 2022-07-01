@@ -495,8 +495,8 @@ class InputReader:
            input_context: Optional[tf.distribute.InputContext] = None,
            dataset: Optional[tf.data.Dataset] = None) -> tf.data.Dataset:
     """Generates a tf.data.Dataset object."""
-    print("-" * 4, "in official/core/input_reader.InputReader.read()")
-    print("self._global_batch_size: ", self._global_batch_size)
+    # print("-" * 4, "in official/core/input_reader.InputReader.read()")
+    # print("self._global_batch_size: ", self._global_batch_size)
     if dataset is None:
       dataset = self._read_data_source(self._matched_files, self._dataset_fn,
                                        input_context, self._tfds_builder)
@@ -509,5 +509,5 @@ class InputReader:
       options = tf.data.Options()
       options.experimental_deterministic = self._deterministic
       dataset = dataset.with_options(options)
-    print("-" * 4, "out official/core/input_reader.InputReader.read()")
+    # print("-" * 4, "out official/core/input_reader.InputReader.read()")
     return dataset.prefetch(self._prefetch_buffer_size)

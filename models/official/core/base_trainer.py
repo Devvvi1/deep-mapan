@@ -203,10 +203,10 @@ class Trainer(_AsyncTrainer):
     self.init_async()
 
     if train:
-      if model_metrics:
-        print("model_metrics is not []!")
-      else:
-        print("model_metrics is []!")
+      # if model_metrics:
+      #   print("model_metrics is not []!")
+      # else:
+      #   print("model_metrics is []!")
       self._train_metrics = self.task.build_metrics(
           training=True) + model_metrics
       train_dataset = train_dataset or self.distribute_dataset(
@@ -339,13 +339,13 @@ class Trainer(_AsyncTrainer):
     num = 0
     for metric in self.train_metrics + [self.train_loss]:
       num = num + 1
-      print("No.", num, metric.name)
+      # print("No.", num, metric.name)
       if not metric:
         print(metric.name, "is empty!")
       logs[metric.name] = metric.result()
       # temp = logs[metric.name].get_shape().as_list()
       # print("metric.shape is ", temp)
-      print("after metric.result()")
+      # print("after metric.result()")
       metric.reset_states()
     print("after metric.reset_states()")
     print(logs)
@@ -356,7 +356,7 @@ class Trainer(_AsyncTrainer):
       flag = True
       if hasattr(self.optimizer, "iterations") and flag:
         print("has iterations")
-        print("self.optimizer.iterations:", self.optimizer.iterations)
+        # print("self.optimizer.iterations:", self.optimizer.iterations)
         logs["learning_rate"] = self.optimizer.learning_rate(self.optimizer.iterations)
         print("after iterations")
       else:

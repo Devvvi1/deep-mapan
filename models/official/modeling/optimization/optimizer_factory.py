@@ -148,18 +148,18 @@ class OptimizerFactory:
       tf.keras.optimizers.schedules.LearningRateSchedule instance. If
       learning rate type is consant, lr_config.learning_rate is returned.
     """
-    print("-" * 4, "in official/modeling/optimization/optimizer_factory.build_learning_rate()")
+    # print("-" * 4, "in official/modeling/optimization/optimizer_factory.build_learning_rate()")
     if self._lr_type == 'constant':
-      print("lr type is constant")
+      # print("lr type is constant")
       lr = self._lr_config.learning_rate
     else:
-      print("lr type is ", self._lr_type)
+      # print("lr type is ", self._lr_type)
       lr = LR_CLS[self._lr_type](**self._lr_config.as_dict())
 
     if self._warmup_config:
-      print("use warmup config")
+      # print("use warmup config")
       lr = WARMUP_CLS[self._warmup_type](lr, **self._warmup_config.as_dict())
-    print("-" * 4, "out official/modeling/optimization/optimizer_factory.build_learning_rate()")
+    # print("-" * 4, "out official/modeling/optimization/optimizer_factory.build_learning_rate()")
     return lr
 
   @gin.configurable
@@ -196,7 +196,7 @@ class OptimizerFactory:
       `tf.keras.optimizers.Optimizer` or
       `tf.keras.optimizers.experimental.Optimizer` instance.
     """
-    print("-" * 4, "in official/modeling/optimization/optimizer_factory.build_optimizer()")
+    # print("-" * 4, "in official/modeling/optimization/optimizer_factory.build_optimizer()")
     optimizer_dict = self._optimizer_config.as_dict()
     ## Delete clipnorm, clipvalue, global_clipnorm if None
     if optimizer_dict['clipnorm'] is None:
@@ -207,12 +207,12 @@ class OptimizerFactory:
       del optimizer_dict['global_clipnorm']
 
     optimizer_dict['learning_rate'] = lr
-    print(lr)
+    # print(lr)
     if gradient_aggregator is not None:
       optimizer_dict['gradient_aggregator'] = gradient_aggregator
     if gradient_transformers is not None:
       optimizer_dict['gradient_transformers'] = gradient_transformers
-    print("self._optimizer_type: ", self._optimizer_type)
+    # print("self._optimizer_type: ", self._optimizer_type)
     optimizer = OPTIMIZERS_CLS[self._optimizer_type](**optimizer_dict)
 
     if self._use_ema:
@@ -235,5 +235,5 @@ class OptimizerFactory:
       else:
         raise TypeError('OptimizerFactory.build_optimizer returning a '
                         'non-optimizer object: {}'.format(optimizer))
-    print("-" * 4, "out official/modeling/optimization/optimizer_factory.build_optimizer()")
+    # print("-" * 4, "out official/modeling/optimization/optimizer_factory.build_optimizer()")
     return optimizer

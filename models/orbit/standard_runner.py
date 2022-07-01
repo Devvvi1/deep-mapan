@@ -139,15 +139,15 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
     """
     print("-"*4, "in orbit/standard_runner.ST.train()")
     self.train_loop_begin()
-    print("after ST.train_loop_begin()")
+    # print("after ST.train_loop_begin()")
 
     if self._train_loop_fn is None:
       self._train_loop_fn = self.create_train_loop_fn()
-    print("after ST.create_train_loop_fn()")
+    # print("after ST.create_train_loop_fn()")
 
     if self._train_iter is None:
       self._train_iter = tf.nest.map_structure(iter, self.train_dataset)
-    print("after ST._train_iter")
+    # print("after ST._train_iter")
 
     print("-"*8, "in orbit/standard_runner.ST._train_loop_fn")
     self._train_loop_fn(self._train_iter, num_steps)

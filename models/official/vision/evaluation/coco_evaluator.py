@@ -106,19 +106,19 @@ class COCOEvaluator(object):
 
   def reset_states(self):
     """Resets internal states for a fresh run."""
-    print("---------------------- in official/vision/evaluuator.COCO_E.reset_states() ----------------------")
+    # print("---------------------- in official/vision/evaluuator.COCO_E.reset_states() ----------------------")
     self._predictions = {}
     if not self._annotation_file:
       self._groundtruths = {}
-    print("---------------------- out official/vision/evaluuator.COCO_E.reset_states() ----------------------")
+    # print("---------------------- out official/vision/evaluuator.COCO_E.reset_states() ----------------------")
 
   def result(self):
     """Evaluates detection results, and reset_states."""
-    print("---------------------- in official/vision/evaluuator.COCO_E.result() ----------------------")
+    # print("---------------------- in official/vision/evaluuator.COCO_E.result() ----------------------")
     metric_dict = self.evaluate()
     # Cleans up the internal variables in order for a fresh eval next time.
     self.reset_states()
-    print("---------------------- out official/vision/evaluuator.COCO_E.result() ----------------------")
+    # print("---------------------- out official/vision/evaluuator.COCO_E.result() ----------------------")
     return metric_dict
 
   def evaluate(self):
