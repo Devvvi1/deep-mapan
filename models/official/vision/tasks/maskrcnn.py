@@ -372,7 +372,7 @@ class MaskRCNNTask(base_task.Task):
     Returns:
       A dictionary of logs.
     """
-    print("-"*16, "in tasks.maskrcnn.train_step()")
+    # print("-"*16, "in tasks.maskrcnn.train_step()")
     # print("len(inputs):", len(inputs))
     images, labels = inputs
     # labels_keys = list(labels.keys())
@@ -417,7 +417,7 @@ class MaskRCNNTask(base_task.Task):
         # temp = losses[m.name]
         # print(temp)
         # print(temp.numpy())
-    print("-"*16, "out tasks.maskrcnn.train_step()")
+    # print("-"*16, "out tasks.maskrcnn.train_step()")
     return logs
 
   def validation_step(self,

@@ -121,7 +121,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
            training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
-    print("-"*20, "in models.deep-maskrcnn_model.call()")
+    # print("-"*20, "in models.deep-maskrcnn_model.call()")
     # ------------ 运行box branch -------------#
     # print("images.shape:", tf.shape(images))
     # a, b, c, d = images.get_shape().as_list()
@@ -155,7 +155,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
         gt_boxes=gt_boxes,
         training=training)
     model_outputs.update(model_mask_outputs)
-    print("-"*20, "out models.deep-maskrcnn_model.call()")
+    # print("-"*20, "out models.deep-maskrcnn_model.call()")
     return model_outputs
 
   def call_images_and_boxes(self, images, boxes):

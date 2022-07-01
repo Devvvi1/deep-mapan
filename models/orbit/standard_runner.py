@@ -112,7 +112,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
     Returns:
       The train loop function, i.e. wrapper of multiple train steps.
     """
-    print("-"*12, "in orbit/standard_runner.StandardTrainer.create_train_loop_fn()")
+    # print("-"*12, "in orbit/standard_runner.StandardTrainer.create_train_loop_fn()")
     train_step_fn = self.train_step
     if self._train_options.use_tf_while_loop:
       loop_fn = loop_fns.create_tf_while_loop_fn(train_step_fn)
@@ -124,7 +124,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
       if self._train_options.use_tf_function:
         train_step_fn = tf.function(train_step_fn)
       loop_fn = loop_fns.create_loop_fn(train_step_fn)
-    print("-"*12, "out orbit/standard_runner.StandardTrainer.create_train_loop_fn()")
+    # print("-"*12, "out orbit/standard_runner.StandardTrainer.create_train_loop_fn()")
     return loop_fn
 
   def train(self, num_steps: tf.Tensor) -> Optional[runner.Output]:
@@ -149,9 +149,9 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
       self._train_iter = tf.nest.map_structure(iter, self.train_dataset)
     # print("after ST._train_iter")
 
-    print("-"*8, "in orbit/standard_runner.ST._train_loop_fn")
+    # print("-"*8, "in orbit/standard_runner.ST._train_loop_fn")
     self._train_loop_fn(self._train_iter, num_steps)
-    print("-"*8, "out orbit/standard_runner.ST._train_loop_fn")
+    # print("-"*8, "out orbit/standard_runner.ST._train_loop_fn")
     print("-"*4, "out orbit/standard_runner.ST.train()")
     return self.train_loop_end()
 

@@ -54,7 +54,7 @@ class _AsyncTrainer(orbit.StandardTrainer, orbit.StandardEvaluator):
 
   def create_train_loop_fn(self):
     """Creates a eval loop from the given step function and options."""
-    print("-"*8, "in official/core/base_trainer._AT.create_train_loop_fn()")
+    # print("-"*8, "in official/core/base_trainer._AT.create_train_loop_fn()")
     train_loop_fn = super().create_train_loop_fn()
     if getattr(self, "_is_async", False):
 
@@ -64,7 +64,7 @@ class _AsyncTrainer(orbit.StandardTrainer, orbit.StandardEvaluator):
       print("-"*8, "out official/core/base_trainer._AT.create_train_loop_fn()")
       return _async_loop_fn
     else:
-      print("-"*8, "out official/core/base_trainer._AT.create_train_loop_fn()")
+      # print("-"*8, "out official/core/base_trainer._AT.create_train_loop_fn()")
       return train_loop_fn
 
   def create_eval_loop_fn(self, has_state: bool):
@@ -347,18 +347,18 @@ class Trainer(_AsyncTrainer):
       # print("metric.shape is ", temp)
       # print("after metric.result()")
       metric.reset_states()
-    print("after metric.reset_states()")
+    # print("after metric.reset_states()")
     print(logs)
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
       # So just to be safe here.
-      print("in callable!")
+      # print("in callable!")
       flag = True
       if hasattr(self.optimizer, "iterations") and flag:
-        print("has iterations")
+        # print("has iterations")
         # print("self.optimizer.iterations:", self.optimizer.iterations)
         logs["learning_rate"] = self.optimizer.learning_rate(self.optimizer.iterations)
-        print("after iterations")
+        # print("after iterations")
       else:
         print("has no iterations")
         logs["learning_rate"] = self.optimizer.learning_rate(self.global_step)
@@ -370,7 +370,7 @@ class Trainer(_AsyncTrainer):
 
   def train_step(self, iterator):
     """See base class."""
-    print("-"*12, "in official/core/base_trainer.T.train_step()")
+    # print("-"*12, "in official/core/base_trainer.T.train_step()")
     def step_fn(inputs):
       if self.config.runtime.enable_xla and (self.config.runtime.num_gpus > 0):
         task_train_step = tf.function(self.task.train_step, jit_compile=True)
@@ -386,7 +386,7 @@ class Trainer(_AsyncTrainer):
 
     self.strategy.run(
         step_fn, args=(next(iterator),), options=self._runtime_options)
-    print("-"*12, "out official/core/base_trainer.T.train_step()")
+    # print("-"*12, "out official/core/base_trainer.T.train_step()")
 
   def eval_begin(self):
     """Sets up metrics."""

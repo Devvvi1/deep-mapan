@@ -146,7 +146,7 @@ class Parser(parser.Parser):
         gt_masks: groundtrugh masks cropped by the bounding box and
           resized to a fixed size determined by mask_crop_size.
     """
-    print("---------------------- in official/vision/dataloaders/maskrcnn_input.Parser._parse_train_data() ----------------------")
+    # print("---------------------- in official/vision/dataloaders/maskrcnn_input.Parser._parse_train_data() ----------------------")
     data_keys = list(data.keys())
     # print("labels keys:", data_keys)
     # print("data['source_id']:", data['source_id'])
@@ -276,8 +276,8 @@ class Parser(parser.Parser):
     if self._include_mask:
       labels['gt_masks'] = preprocess_ops.clip_or_pad_to_fixed_size(
           masks, self._max_num_instances, -1)
-      print("get gt_masks!")
-    print("---------------------- out official/vision/dataloaders/maskrcnn_input.StandardTrainer._parse_train_data() ----------------------")
+      # print("get gt_masks!")
+    # print("---------------------- out official/vision/dataloaders/maskrcnn_input.StandardTrainer._parse_train_data() ----------------------")
     return image, labels
 
   def _parse_eval_data(self, data):
