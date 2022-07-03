@@ -61,6 +61,7 @@ class TfExampleDecoder(decoder.Decoder):
 
   def _decode_image(self, parsed_tensors):
     """Decodes the image and set its static shape."""
+    print("_decode_image()!")
     image = tf.io.decode_image(parsed_tensors['image/encoded'], channels=3)
     image.set_shape([None, None, 3])
     return image
