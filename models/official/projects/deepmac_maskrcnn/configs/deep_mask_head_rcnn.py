@@ -49,9 +49,10 @@ class DeepMaskHeadRCNNTask(maskrcnn_config.MaskRCNNTask):
 def deep_mask_head_rcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
   """COCO object detection with Mask R-CNN with deep mask heads."""
   # global_batch_size = 64
-  global_batch_size = 32
-  steps_per_epoch = int(retinanet_config.COCO_TRAIN_EXAMPLES /
-                        global_batch_size)
+  global_batch_size = 64
+  # steps_per_epoch = int(retinanet_config.COCO_TRAIN_EXAMPLES /
+  #                       global_batch_size)
+  steps_per_epoch = 500
   print("steps_per_epoch:", steps_per_epoch)
   coco_val_samples = 5000
 
