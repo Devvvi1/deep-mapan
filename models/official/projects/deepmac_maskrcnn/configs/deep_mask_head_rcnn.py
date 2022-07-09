@@ -52,7 +52,7 @@ def deep_mask_head_rcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
   global_batch_size = 64
   # steps_per_epoch = int(retinanet_config.COCO_TRAIN_EXAMPLES /
   #                       global_batch_size)
-  steps_per_epoch = 500
+  steps_per_epoch = 100
   print("steps_per_epoch:", steps_per_epoch)
   coco_val_samples = 5000
 
