@@ -101,10 +101,11 @@ def create_tf_example(image,
   image_id = image['id']
 
   full_path = os.path.join(image_dir, filename)
-  print(filename)
+  print("filename:", filename)
   with tf.gfile.GFile(full_path, 'rb') as fid:
     encoded_jpg = fid.read()
   encoded_jpg_io = io.BytesIO(encoded_jpg)
+  print("encoded_jpg_io:", encoded_jpg_io)
   image = PIL.Image.open(encoded_jpg_io)
   key = hashlib.sha256(encoded_jpg).hexdigest()
 
