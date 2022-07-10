@@ -233,7 +233,7 @@ def _create_tf_record_from_coco_annotations(annotations_file,
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))
         if idx <= 107000:
-            pass
+            continue
       image_id = image['id']
 
       if image_id not in annotations_index:
