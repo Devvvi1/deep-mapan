@@ -89,7 +89,7 @@ def convert_to_feature(value, value_type=None):
 def image_info_to_feature_dict(height, width, filename, image_id,
                                encoded_str, encoded_format):
   """Convert image information to a dict of features."""
-
+  read_image(io.BytesIO(encoded_str))
   key = hashlib.sha256(encoded_str).hexdigest()
 
   return {
@@ -105,6 +105,7 @@ def image_info_to_feature_dict(height, width, filename, image_id,
 
 def read_image(image_path):
   pil_image = Image.open(image_path)
+  pil_image.load()
   return np.asarray(pil_image)
 
 

@@ -236,7 +236,7 @@ def _create_tf_record_from_coco_annotations(annotations_file,
     for idx, image in enumerate(images):
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))
-      if idx <= 109100:
+      if idx <= 109700:
           # print("less than 109000")
           continue
       else:
