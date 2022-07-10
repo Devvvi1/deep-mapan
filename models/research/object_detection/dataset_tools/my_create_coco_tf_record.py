@@ -233,17 +233,20 @@ def _create_tf_record_from_coco_annotations(annotations_file,
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))
       if idx <= 108000:
+          print("less than 109000")
           continue
-      image_id = image['id']
-
-      if image_id not in annotations_index:
-        continue
       else:
-        annotations_list = annotations_index[image['id']]
-        _, tf_example, num_annotations_skipped = create_tf_example(image, annotations_list, image_dir, category_index, include_masks)
-        total_num_annotations_skipped += num_annotations_skipped
-        shard_idx = idx % num_shards
-        output_tfrecords[shard_idx].write(tf_example.SerializeToString())
+          image_id = image['id']
+
+          if image_id not in annotations_index:
+              continue
+          else:
+              annotations_list = annotations_index[image['id']]
+              _, tf_example, num_annotations_skipped = create_tf_example(image, annotations_list, image_dir,
+                                                                         category_index, include_masks)
+              total_num_annotations_skipped += num_annotations_skipped
+              shard_idx = idx % num_shards
+              output_tfrecords[shard_idx].write(tf_example.SerializeToString())
     tf.logging.info('Finished writing, skipped %d annotations.',
                     total_num_annotations_skipped)
 
