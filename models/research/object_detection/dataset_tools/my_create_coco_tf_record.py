@@ -107,6 +107,7 @@ def create_tf_example(image,
   encoded_jpg_io = io.BytesIO(encoded_jpg)
   # print("encoded_jpg_io:", encoded_jpg_io)
   if str(filename) == "000000129553.jpg":
+      print("000000129553.jpg ignore")
       pass
   else:
       image = PIL.Image.open(encoded_jpg_io)
