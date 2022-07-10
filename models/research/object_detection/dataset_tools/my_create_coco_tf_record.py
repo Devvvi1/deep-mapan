@@ -105,8 +105,9 @@ def create_tf_example(image,
   with tf.gfile.GFile(full_path, 'rb') as fid:
     encoded_jpg = fid.read()
   encoded_jpg_io = io.BytesIO(encoded_jpg)
-  print("encoded_jpg_io:", encoded_jpg_io)
+  # print("encoded_jpg_io:", encoded_jpg_io)
   image = PIL.Image.open(encoded_jpg_io)
+  image.load()
   key = hashlib.sha256(encoded_jpg).hexdigest()
 
   xmin = []
@@ -231,6 +232,8 @@ def _create_tf_record_from_coco_annotations(annotations_file,
     for idx, image in enumerate(images):
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))
+        if idx <= 107000:
+            pass
       image_id = image['id']
 
       if image_id not in annotations_index:
