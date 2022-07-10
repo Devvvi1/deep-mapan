@@ -352,7 +352,7 @@ class Trainer(_AsyncTrainer):
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
       # So just to be safe here.
-      print("in callable!")
+      # print("in callable!")
       flag = True
       if hasattr(self.optimizer, "iterations") and flag:
         print("has iterations")
