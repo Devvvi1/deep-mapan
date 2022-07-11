@@ -16,11 +16,11 @@ task:
   train_data:
     global_batch_size: 64
     # input_path: 'gs://mapan/tf_data/coco/train2017/train-?????-of-00256.tfrecord'
-    input_path: 'gs://mapan/tf_data/coco/train2017/train-*'
+    input_path: 'gs://mapan/tf_data/coco/temp/train-*'
   validation_data:
     global_batch_size: 32
     # input_path: 'gs://mapan/tf_data/coco/val2017/val-?????-of-00032.tfrecord'
-    input_path: 'gs://mapan/tf_data/coco/val2017/val-*'
+    input_path: 'gs://mapan/tf_data/coco/val/val-*'
     # label_map_path: 'gs://mapan/tf_data/coco/val/label_map.txt'
 
 trainer:
