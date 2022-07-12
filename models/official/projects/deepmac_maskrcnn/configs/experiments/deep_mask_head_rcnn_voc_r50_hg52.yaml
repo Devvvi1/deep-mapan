@@ -15,11 +15,15 @@ task:
       type: 'resnet'
       resnet:
         model_id: 50
-  init_checkpoint: 'gs://tf_model_garden/vision/resnet50_imagenet/ckpt-28080'
+  # init_checkpoint: 'gs://tf_model_garden/vision/resnet50_imagenet/ckpt-28080'
+  init_checkpoint: 'gs://cloud-tpu-checkpoints/vision-2.0/resnet50_imagenet/ckpt-28080'
+  annotation_file: 'gs://mapan/tf_data/coco/instances_val2017.json'
   train_data:
     global_batch_size: 64
+    input_path: 'gs://mapan/tf_data/coco/temp/train-*'
   validation_data:
     global_batch_size: 32
+    input_path: 'gs://mapan/tf_data/coco/val/val-*'
 
 trainer:
   optimizer_config:

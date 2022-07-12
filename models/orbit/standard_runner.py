@@ -137,7 +137,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
     Returns:
       The output of `train_loop_end`.
     """
-    print("-"*4, "in orbit/standard_runner.ST.train()")
+    # print("-"*4, "in orbit/standard_runner.ST.train()")
     self.train_loop_begin()
     # print("after ST.train_loop_begin()")
 
@@ -152,7 +152,7 @@ class StandardTrainer(runner.AbstractTrainer, metaclass=abc.ABCMeta):
     # print("-"*8, "in orbit/standard_runner.ST._train_loop_fn")
     self._train_loop_fn(self._train_iter, num_steps)
     # print("-"*8, "out orbit/standard_runner.ST._train_loop_fn")
-    print("-"*4, "out orbit/standard_runner.ST.train()")
+    # print("-"*4, "out orbit/standard_runner.ST.train()")
     return self.train_loop_end()
 
   def train_loop_begin(self):

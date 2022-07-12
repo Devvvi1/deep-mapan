@@ -347,7 +347,7 @@ class Trainer(_AsyncTrainer):
       # print("metric.shape is ", temp)
       # print("after metric.result()")
       metric.reset_states()
-    print("after metric.reset_states()")
+    # print("after metric.reset_states()")
     # print(logs)
     if callable(self.optimizer.learning_rate):
       # Maybe a self-implemented optimizer does not have `optimizer.iterations`.
@@ -355,15 +355,15 @@ class Trainer(_AsyncTrainer):
       # print("in callable!")
       flag = True
       if hasattr(self.optimizer, "iterations") and flag:
-        print("has iterations")
+        # print("has iterations")
         # print("self.optimizer.iterations:", self.optimizer.iterations)
         logs["learning_rate"] = self.optimizer.learning_rate(self.optimizer.iterations)
-        print("after learning_rate")
+        # print("after learning_rate")
       else:
-        print("has no iterations")
+        # print("has no iterations")
         logs["learning_rate"] = self.optimizer.learning_rate(self.global_step)
     else:
-      print("not callable!")
+      # print("not callable!")
       logs["learning_rate"] = self.optimizer.learning_rate
     print("-"*4, "out official/core/base_trainer.T.train_loop_end()")
     return logs
