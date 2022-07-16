@@ -44,7 +44,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         input_specs=backbone.output_specs,
         min_level=min_level,
         max_level=max_level,
-        bpa=bpa,
+        # bpa=bpa,
         fusion_type=fusion_type,
         use_separable_conv=use_separable_conv)
 
@@ -96,7 +96,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         input_specs=resnet.ResNet(model_id=50).output_specs,
         min_level=3,
         max_level=7,
-        bpa=False,
+        # bpa=False,
         num_filters=256,
         fusion_type='sum',
         use_separable_conv=False,
