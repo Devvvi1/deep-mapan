@@ -21,13 +21,14 @@ import tensorflow as tf
 from official.vision.modeling.backbones import mobilenet
 from official.vision.modeling.backbones import resnet
 from official.vision.modeling.decoders import fpn
+from absl import logging
 
 
 class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
   @parameterized.parameters(
       (1, 256, 3, 7, False, False, 'sum'),
-      (2, 256, 3, 7, False, True, 'concat'),
+      (2, 256, 3, 7, True, False, 'concat'),
   )
   # 主要测试每个 level 的特征图的 shape
   def test_network_creation(self, num, input_size, min_level, max_level, bpa,
@@ -108,7 +109,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         bias_regularizer=None,
     )
     network = fpn.FPN(**kwargs)
-
+    logging.info('kwargs input_specs: %s', kwargs['input_specs'])
     expected_config = dict(kwargs)
     self.assertEqual(network.get_config(), expected_config)
 

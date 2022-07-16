@@ -206,7 +206,6 @@ class FPN(tf.keras.Model):
                 bias_regularizer=bias_regularizer)(
                 feats[str(level)])
 
-
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build coarser FPN levels introduced for RetinaNet.
     for level in range(backbone_max_level + 1, max_level + 1):
