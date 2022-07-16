@@ -211,10 +211,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
              roi_width * upsample_factor], representing the mask predictions.
         """
         roi_features, roi_classes = inputs
-        print("-------- Deep Mask Head info --------")
+        # print("-------- Deep Mask Head info --------")
         if afp:
-            print("afp:True")
-            print("len(roi_features):", len(roi_features))
+            # print("afp:True")
+            # print("len(roi_features):", len(roi_features))
             features_shape = tf.shape(roi_features[0])
             batch_size, num_rois, height, width, filters = (
                 features_shape[0], features_shape[1], features_shape[2],
@@ -227,7 +227,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
                 x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
             # print("len(x):", len(x))
         else:
-            print("afp:False")
+            # print("afp:False")
             features_shape = tf.shape(roi_features)
             batch_size, num_rois, height, width, filters = (
                 features_shape[0], features_shape[1], features_shape[2],
@@ -243,13 +243,13 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         logits_ff = []
         if afp and isinstance(x, List):
-            print("FF:True")
+            # print("FF:True")
             x_ff = x[1]
             x = x[0]
             # x_ff 的 reshape 是否正确
             _, _, _, filters = x_ff.get_shape().as_list()
-            print("x_ff.shape:", tf.shape(x_ff))
-            print("x.shape:", tf.shape(x))
+            # print("x_ff.shape:", tf.shape(x_ff))
+            # print("x.shape:", tf.shape(x))
             # filters = tf.shape(x_ff)[-1]
             # print("x_ff.filters:", filters)
             x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
@@ -258,9 +258,9 @@ class DeepMaskHead(tf.keras.layers.Layer):
             x_ff = self._activation(x_ff)
             logits_ff = x_ff
             # 维度为 (2, 10, 28*28)
-            print("logits_ff.shape after fcs:", tf.shape(logits_ff))
+            # print("logits_ff.shape after fcs:", tf.shape(logits_ff))
         else:
-            print("FF:False")
+            # print("FF:False")
             i = 0
 
         x = self._deconv(x)
@@ -292,9 +292,9 @@ class DeepMaskHead(tf.keras.layers.Layer):
             # print("logits_ff.shape before fusion:", tf.shape(logits_ff))
             logits = tf.add(logits, logits_ff)
             # print("logits.shape after fusion:", tf.shape(logits))
-            print("fusion:YES")
+            # print("fusion:YES")
         else:
-            print("fusion:NO")
+            # print("fusion:NO")
             i = 1
 
         batch_indices = tf.tile(
@@ -312,16 +312,16 @@ class DeepMaskHead(tf.keras.layers.Layer):
             axis=2)
         mask_outputs = tf.gather_nd(
             tf.transpose(logits, [0, 1, 4, 2, 3]), gather_indices)
-        print("-------------------------------------")
+        # print("-------------------------------------")
         return mask_outputs
 
     def _build_convnet_variant(self, input_shape):
         conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
         bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
-        print("-------- DeepMaskHead._build_convnet_variant() --------")
-        print("input_shape[0]:", input_shape[0])
-        print("len(input_shape[0]):", len(input_shape[0]))
-        print("crop_size is:", self._config_dict['crop_size'])
+        # print("-------- DeepMaskHead._build_convnet_variant() --------")
+        # print("input_shape[0]:", input_shape[0])
+        # print("len(input_shape[0]):", len(input_shape[0]))
+        # print("crop_size is:", self._config_dict['crop_size'])
         if isinstance(input_shape[0], List):
             num_levels = len(input_shape[0])
             filters = input_shape[0][0][-1]
@@ -330,10 +330,10 @@ class DeepMaskHead(tf.keras.layers.Layer):
             filters = input_shape[0][-1]
         old_filters = conv_kwargs['filters']
         set_filters = self._config_dict['num_filters']
-        print("num_levels:", num_levels)
-        print("old filters:", old_filters)
-        print("input filters:", filters)
-        print("self._config_dict['num_filters']:", set_filters)
+        # print("num_levels:", num_levels)
+        # print("old filters:", old_filters)
+        # print("input filters:", filters)
+        # print("self._config_dict['num_filters']:", set_filters)
         if filters != set_filters:
             conv_kwargs.update({'filters': filters})
 
@@ -362,7 +362,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
                 self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
         elif variant == 'fully-connected':
-            print("now conv_kwargs['filters']:", conv_kwargs['filters'])
+            # print("now conv_kwargs['filters']:", conv_kwargs['filters'])
             # ------------ conv_head + nomrs -------------#
             self._conv_head = []
             self._conv_head_norms = []
@@ -390,7 +390,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
             conv_kwargs.update({'filters': filters / 2})
-            print("conv_kwargs['filters'] update for conv fc:", conv_kwargs['filters'])
+            # print("conv_kwargs['filters'] update for conv fc:", conv_kwargs['filters'])
 
             conv_name = 'mask-conv-fc_{}'.format(1)
             self._conv_fc.append(conv_op(name=conv_name, **conv_kwargs))
@@ -398,11 +398,11 @@ class DeepMaskHead(tf.keras.layers.Layer):
             self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
             conv_kwargs.update({'filters': filters})
-            print("conv_kwargs['filters'] after conv fc:", conv_kwargs['filters'])
+            # print("conv_kwargs['filters'] after conv fc:", conv_kwargs['filters'])
 
             # ------------ fc + nomrs -------------#
             fc_name = 'mask-fc_{}'.format(0)
-            print("self._config_dict['crop_size']:", self._config_dict['crop_size'])
+            # print("self._config_dict['crop_size']:", self._config_dict['crop_size'])
             self._fcs = tf.keras.layers.Dense(
                 units=(self._config_dict['crop_size'] * self._config_dict['upsample_factor']) ** 2,
                 kernel_initializer=tf.keras.initializers.VarianceScaling(
@@ -431,7 +431,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         else:
             raise ValueError('Unknown ConvNet variant - {}'.format(variant))
-        print("-------------------------------------------------------")
+        # print("-------------------------------------------------------")
 
     def _call_AFP_convnet(self, x, afp):
         if afp:

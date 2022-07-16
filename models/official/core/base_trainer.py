@@ -333,7 +333,7 @@ class Trainer(_AsyncTrainer):
 
   def train_loop_end(self):
     """See base class."""
-    print("-"*4, "in official/core/base_trainer.T.train_loop_end()")
+    # print("-"*4, "in official/core/base_trainer.T.train_loop_end()")
     self.join()
     logs = {}
     num = 0
@@ -365,7 +365,7 @@ class Trainer(_AsyncTrainer):
     else:
       # print("not callable!")
       logs["learning_rate"] = self.optimizer.learning_rate
-    print("-"*4, "out official/core/base_trainer.T.train_loop_end()")
+    # print("-"*4, "out official/core/base_trainer.T.train_loop_end()")
     return logs
 
   def train_step(self, iterator):
