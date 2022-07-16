@@ -90,10 +90,12 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
   #   print("----------------------------------------------------------------------------\n")
   def test_serialize_deserialize(self):
     # Create a network object that sets all of its config options.
+    print("\n---------------------------Test config of FPN---------------------------")
     kwargs = dict(
         input_specs=resnet.ResNet(model_id=50).output_specs,
         min_level=3,
         max_level=7,
+        bpa=False,
         num_filters=256,
         fusion_type='sum',
         use_separable_conv=False,
@@ -119,6 +121,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
     # If the serialization was successful, the new config should match the old.
     self.assertAllEqual(network.get_config(), new_network.get_config())
+    print("------------------------------------------------------------------------\n")
 
   # def test_serialize_deserialize2(self):
   #   # Create a network object that sets all of its config options.
