@@ -41,6 +41,7 @@ class FPN(tf.keras.Model):
       input_specs: Mapping[str, tf.TensorShape],
       min_level: int = 3,
       max_level: int = 7,
+      bpa: bool = False,
       num_filters: int = 256,
       fusion_type: str = 'sum',
       use_separable_conv: bool = False,
@@ -81,6 +82,7 @@ class FPN(tf.keras.Model):
         'input_specs': input_specs,
         'min_level': min_level,
         'max_level': max_level,
+        'bpa': bpa,
         'num_filters': num_filters,
         'fusion_type': fusion_type,
         'use_separable_conv': use_separable_conv,
@@ -159,6 +161,50 @@ class FPN(tf.keras.Model):
           kernel_regularizer=kernel_regularizer,
           bias_regularizer=bias_regularizer)(
               feats[str(level)])
+
+      # add for bpa buttom-up path
+      # bpa = False
+      if bpa:
+          # print("bpa:True")
+          # 取出 N3，它是由 P3 直接生成的
+          # feats = {str(min_level): feats[str(min_level)]}
+          for level in range(min_level + 1, backbone_max_level + 1):
+              # feat_a 为 N3，经过 2x up下采样
+              feat_a = conv2d(
+                  filters=num_filters,
+                  strides=2,
+                  kernel_size=3,
+                  padding='same',
+                  kernel_initializer=kernel_initializer,
+                  kernel_regularizer=kernel_regularizer,
+                  bias_regularizer=bias_regularizer)(
+                  feats[str(level - 1)])
+              # feat_b 为 P4
+              feat_b = feats[str(level)]
+              # 两者相加
+              if fusion_type == 'sum':
+                  if use_keras_layer:
+                      feats[str(level)] = tf.keras.layers.Add()([feat_a, feat_b])
+                  else:
+                      feats[str(level)] = feat_a + feat_b
+              elif fusion_type == 'concat':
+                  if use_keras_layer:
+                      feats[str(level)] = tf.keras.layers.Concatenate(axis=-1)(
+                          [feat_a, feat_b])
+                  else:
+                      feats[str(level)] = tf.concat([feat_a, feat_b], axis=-1)
+              else:
+                  raise ValueError('Fusion type {} not supported.'.format(fusion_type))
+              # 经过一个 1*1 conv 后得到 N4
+              feats[str(level)] = conv2d(
+                  filters=num_filters,
+                  strides=1,
+                  kernel_size=3,
+                  padding='same',
+                  kernel_initializer=kernel_initializer,
+                  kernel_regularizer=kernel_regularizer,
+                  bias_regularizer=bias_regularizer)(
+                  feats[str(level)])
 
     # TODO(xianzhi): consider to remove bias in conv2d.
     # Build coarser FPN levels introduced for RetinaNet.
@@ -245,6 +291,7 @@ def build_fpn_decoder(
       input_specs=input_specs,
       min_level=model_config.min_level,
       max_level=model_config.max_level,
+      bpa=model_config.bpa,
       num_filters=decoder_cfg.num_filters,
       fusion_type=decoder_cfg.fusion_type,
       use_separable_conv=decoder_cfg.use_separable_conv,

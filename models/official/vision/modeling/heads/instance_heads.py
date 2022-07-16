@@ -93,6 +93,7 @@ class DetectionHead(tf.keras.layers.Layer):
 
   def build(self, input_shape: Union[tf.TensorShape, List[tf.TensorShape]]):
     """Creates the variables of the head."""
+    # ------------ conv_op -------------#
     conv_op = (tf.keras.layers.SeparableConv2D
                if self._config_dict['use_separable_conv']
                else tf.keras.layers.Conv2D)
@@ -102,24 +103,25 @@ class DetectionHead(tf.keras.layers.Layer):
         'padding': 'same',
     }
     if self._config_dict['use_separable_conv']:
-      conv_kwargs.update({
-          'depthwise_initializer': tf.keras.initializers.VarianceScaling(
-              scale=2, mode='fan_out', distribution='untruncated_normal'),
-          'pointwise_initializer': tf.keras.initializers.VarianceScaling(
-              scale=2, mode='fan_out', distribution='untruncated_normal'),
-          'bias_initializer': tf.zeros_initializer(),
-          'depthwise_regularizer': self._config_dict['kernel_regularizer'],
-          'pointwise_regularizer': self._config_dict['kernel_regularizer'],
-          'bias_regularizer': self._config_dict['bias_regularizer'],
-      })
+        conv_kwargs.update({
+            'depthwise_initializer': tf.keras.initializers.VarianceScaling(
+                scale=2, mode='fan_out', distribution='untruncated_normal'),
+            'pointwise_initializer': tf.keras.initializers.VarianceScaling(
+                scale=2, mode='fan_out', distribution='untruncated_normal'),
+            'bias_initializer': tf.zeros_initializer(),
+            'depthwise_regularizer': self._config_dict['kernel_regularizer'],
+            'pointwise_regularizer': self._config_dict['kernel_regularizer'],
+            'bias_regularizer': self._config_dict['bias_regularizer'],
+        })
     else:
-      conv_kwargs.update({
-          'kernel_initializer': tf.keras.initializers.VarianceScaling(
-              scale=2, mode='fan_out', distribution='untruncated_normal'),
-          'bias_initializer': tf.zeros_initializer(),
-          'kernel_regularizer': self._config_dict['kernel_regularizer'],
-          'bias_regularizer': self._config_dict['bias_regularizer'],
-      })
+        conv_kwargs.update({
+            'kernel_initializer': tf.keras.initializers.VarianceScaling(
+                scale=2, mode='fan_out', distribution='untruncated_normal'),
+            'bias_initializer': tf.zeros_initializer(),
+            'kernel_regularizer': self._config_dict['kernel_regularizer'],
+            'bias_regularizer': self._config_dict['bias_regularizer'],
+        })
+    # ------------ bn_op -------------#
     bn_op = (tf.keras.layers.experimental.SyncBatchNormalization
              if self._config_dict['use_sync_bn']
              else tf.keras.layers.BatchNormalization)
@@ -129,32 +131,54 @@ class DetectionHead(tf.keras.layers.Layer):
         'epsilon': self._config_dict['norm_epsilon'],
     }
 
+    # print("-------- DetectionHead.build() --------")
+    # print("input_shape:", input_shape)
+    # ------------ conv_head + nomrs -------------#
+    num_convs_start = 0
+    if isinstance(input_shape, List):
+        num_convs_start = 1
+        self._conv_head = []
+        self._conv_head_norms = []
+        print("len(input_shape):", len(input_shape))
+        for i in range(len(input_shape)):
+            conv_name = 'detection-conv-head_{}_{}'.format(0, i)
+            if 'kernel_initializer' in conv_kwargs:
+                conv_kwargs['kernel_initializer'] = tf_utils.clone_initializer(
+                    conv_kwargs['kernel_initializer'])
+            self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
+            bn_name = 'detection-conv-head-bn_{}_{}'.format(0, i)
+            self._conv_head_norms.append(bn_op(name=bn_name, **bn_kwargs))
+    # print("num_convs_start:", num_convs_start)
+
+    # ------------ convs + nomrs -------------#
     self._convs = []
     self._conv_norms = []
-    for i in range(self._config_dict['num_convs']):
-      conv_name = 'detection-conv_{}'.format(i)
-      if 'kernel_initializer' in conv_kwargs:
-        conv_kwargs['kernel_initializer'] = tf_utils.clone_initializer(
-            conv_kwargs['kernel_initializer'])
-      self._convs.append(conv_op(name=conv_name, **conv_kwargs))
-      bn_name = 'detection-conv-bn_{}'.format(i)
-      self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
+    for i in range(num_convs_start, self._config_dict['num_convs']):
+        conv_name = 'detection-conv_{}'.format(i)
+        if 'kernel_initializer' in conv_kwargs:
+            conv_kwargs['kernel_initializer'] = tf_utils.clone_initializer(
+                conv_kwargs['kernel_initializer'])
+        self._convs.append(conv_op(name=conv_name, **conv_kwargs))
+        bn_name = 'detection-conv-bn_{}'.format(i)
+        self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
+    # ------------ fcs + nomrs -------------#
     self._fcs = []
     self._fc_norms = []
     for i in range(self._config_dict['num_fcs']):
-      fc_name = 'detection-fc_{}'.format(i)
-      self._fcs.append(
-          tf.keras.layers.Dense(
-              units=self._config_dict['fc_dims'],
-              kernel_initializer=tf.keras.initializers.VarianceScaling(
-                  scale=1 / 3.0, mode='fan_out', distribution='uniform'),
-              kernel_regularizer=self._config_dict['kernel_regularizer'],
-              bias_regularizer=self._config_dict['bias_regularizer'],
-              name=fc_name))
-      bn_name = 'detection-fc-bn_{}'.format(i)
-      self._fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
+        fc_name = 'detection-fc_{}'.format(i)
+        self._fcs.append(
+            tf.keras.layers.Dense(
+                units=self._config_dict['fc_dims'],
+                kernel_initializer=tf.keras.initializers.VarianceScaling(
+                    scale=1 / 3.0, mode='fan_out', distribution='uniform'),
+                kernel_regularizer=self._config_dict['kernel_regularizer'],
+                bias_regularizer=self._config_dict['bias_regularizer'],
+                name=fc_name))
+        bn_name = 'detection-fc-bn_{}'.format(i)
+        self._fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
+    # ------------ classifier -------------#
     self._classifier = tf.keras.layers.Dense(
         units=self._config_dict['num_classes'],
         kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
@@ -165,6 +189,8 @@ class DetectionHead(tf.keras.layers.Layer):
 
     num_box_outputs = (4 if self._config_dict['class_agnostic_bbox_pred'] else
                        self._config_dict['num_classes'] * 4)
+
+    # ------------ box regressor -------------#
     self._box_regressor = tf.keras.layers.Dense(
         units=num_box_outputs,
         kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.001),
@@ -175,7 +201,7 @@ class DetectionHead(tf.keras.layers.Layer):
 
     super(DetectionHead, self).build(input_shape)
 
-  def call(self, inputs: tf.Tensor, training: bool = None):
+  def call(self, inputs: tf.Tensor, training: bool = None, afp: bool = None):
     """Forward pass of box and class branches for the Mask-RCNN model.
 
     Args:
@@ -191,9 +217,28 @@ class DetectionHead(tf.keras.layers.Layer):
         predictions.
     """
     roi_features = inputs
-    _, num_rois, height, width, filters = roi_features.get_shape().as_list()
+    if afp:
+        print("afp:True")
+        # print("len(roi_features):", len(roi_features))
+        _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
+        x = []
+        for i in range(len(roi_features)):
+            x.append(tf.reshape(roi_features[i], [-1, height, width, filters]))
+        # print("len(x):", len(x))
+        # ------------ Conv_head for each level -------------#
+        for i in range(len(x)):
+            x[i] = self._conv_head[i](x[i])
+            x[i] = self._conv_head_norms[i](x[i])
+            x[i] = self._activation(x[i])
+        # ------------ Fusion by max -------------#
+        for i in range(1, len(x)):
+            x[0] = tf.maximum(x[0], x[i])
+        x = x[0]
+    else:
+        # print("afp:False")
+        _, num_rois, height, width, filters = roi_features.get_shape().as_list()
+        x = tf.reshape(roi_features, [-1, height, width, filters])
 
-    x = tf.reshape(roi_features, [-1, height, width, filters])
     for conv, bn in zip(self._convs, self._conv_norms):
       x = conv(x)
       x = bn(x)
@@ -382,7 +427,7 @@ class MaskHead(tf.keras.layers.Layer):
 
     super(MaskHead, self).build(input_shape)
 
-  def call(self, inputs: List[tf.Tensor], training: bool = None):
+  def call(self, inputs: List[tf.Tensor], training: bool = None, afp:bool = None):
     """Forward pass of mask branch for the Mask-RCNN model.
 
     Args:

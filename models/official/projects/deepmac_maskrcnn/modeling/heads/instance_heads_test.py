@@ -24,75 +24,115 @@ from official.projects.deepmac_maskrcnn.modeling.heads import instance_heads as 
 
 class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
 
-  @parameterized.parameters(
-      (1, 1, False),
-      (1, 2, False),
-      (2, 1, False),
-      (2, 2, False),
-  )
-  def test_forward(self, upsample_factor, num_convs, use_sync_bn):
-    mask_head = deep_instance_heads.DeepMaskHead(
-        num_classes=3,
-        upsample_factor=upsample_factor,
-        num_convs=num_convs,
-        num_filters=16,
-        use_separable_conv=False,
-        activation='relu',
-        use_sync_bn=use_sync_bn,
-        norm_momentum=0.99,
-        norm_epsilon=0.001,
-        kernel_regularizer=None,
-        bias_regularizer=None,
+    @parameterized.parameters(
+        # (1, 1, False, False),
+        # (1, 2, False, False),
+        # (2, 1, False, False),
+        (1, 2, 2, False, False),
+        (2, 2, 2, False, True),
     )
-    roi_features = np.random.rand(2, 10, 14, 14, 16)
-    roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
-    self.assertAllEqual(
-        masks.numpy().shape,
-        [2, 10, 14 * upsample_factor, 14 * upsample_factor])
+    def ttest_forward(self, num, upsample_factor, num_convs, use_sync_bn, afp):
+        print("---------------------------Test forward of Deep Mask Head.{}---------------------------".format(num))
+        mask_head = deep_instance_heads.DeepMaskHead(
+            num_classes=3,
+            upsample_factor=upsample_factor,
+            num_convs=num_convs,
+            num_filters=16,
+            use_separable_conv=False,
+            activation='relu',
+            use_sync_bn=use_sync_bn,
+            norm_momentum=0.99,
+            norm_epsilon=0.001,
+            kernel_regularizer=None,
+            bias_regularizer=None,
+        )
+        # roi_features = np.random.rand(2, 10, 14, 14, 16)
+        if not afp:
+            roi_features = np.random.rand(2, 10, 14, 14, 16)
+        else:
+            roi_features = []
+            for i in range(3, 7 + 1):
+                roi_features.append(np.random.rand(2, 10, 14, 14, 16))
+        roi_classes = np.zeros((2, 10))
+        masks = mask_head([roi_features, roi_classes], afp=afp)
+        self.assertAllEqual(
+            masks.numpy().shape,
+            [2, 10, 14 * upsample_factor, 14 * upsample_factor])
+        print("------------------------------------------------------------------------------------")
 
-  def test_serialize_deserialize(self):
-    mask_head = deep_instance_heads.DeepMaskHead(
-        num_classes=3,
-        upsample_factor=2,
-        num_convs=1,
-        num_filters=256,
-        use_separable_conv=False,
-        activation='relu',
-        use_sync_bn=False,
-        norm_momentum=0.99,
-        norm_epsilon=0.001,
-        kernel_regularizer=None,
-        bias_regularizer=None,
-    )
-    config = mask_head.get_config()
-    new_mask_head = deep_instance_heads.DeepMaskHead.from_config(config)
-    self.assertAllEqual(
-        mask_head.get_config(), new_mask_head.get_config())
+    def ttest_serialize_deserialize(self):
+        print("---------------------------Test serialization of Deep Mask Head---------------------------")
+        mask_head = deep_instance_heads.DeepMaskHead(
+            num_classes=3,
+            upsample_factor=2,
+            num_convs=1,
+            num_filters=256,
+            use_separable_conv=False,
+            activation='relu',
+            use_sync_bn=False,
+            norm_momentum=0.99,
+            norm_epsilon=0.001,
+            kernel_regularizer=None,
+            bias_regularizer=None,
+        )
+        config = mask_head.get_config()
+        new_mask_head = deep_instance_heads.DeepMaskHead.from_config(config)
+        self.assertAllEqual(
+            mask_head.get_config(), new_mask_head.get_config())
+        print("------------------------------------------------------------------------------------------")
 
-  def test_forward_class_agnostic(self):
-    mask_head = deep_instance_heads.DeepMaskHead(
-        num_classes=3,
-        class_agnostic=True
+    @parameterized.parameters(
+        # (1, 3, 'default', False),
+        (2, 9, 'default', True),
+        (3, 9, 'fully-connected', True),
     )
-    roi_features = np.random.rand(2, 10, 14, 14, 16)
-    roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
-    self.assertAllEqual(masks.numpy().shape, [2, 10, 28, 28])
+    def test_forward_class_agnostic(self, num, num_classes, convnet_variant, afp):
+        print("\n---------------------------Test forward of class agnostic.{}---------------------------\n".format(num))
+        mask_head = deep_instance_heads.DeepMaskHead(
+            num_classes=num_classes,
+            class_agnostic=True,
+            convnet_variant=convnet_variant
+        )
+        # roi_features = np.random.rand(2, 10, 14, 14, 16)
+        if not afp:
+            roi_features = np.random.rand(2, 10, 14, 14, 16)
+        else:
+            roi_features = []
+            for i in range(3, 7 + 1):
+                roi_features.append(np.random.rand(2, 10, 14, 14, 16))
+        roi_classes = np.zeros((2, 10))
+        masks = mask_head([roi_features, roi_classes], afp=afp)
+        print("masks.shape:", masks.numpy().shape)
+        self.assertAllEqual(masks.numpy().shape, [2, 10, 28, 28])
+        print("------------------------------------------------------------------------------------")
 
-  def test_instance_head_hourglass(self):
-    mask_head = deep_instance_heads.DeepMaskHead(
-        num_classes=3,
-        class_agnostic=True,
-        convnet_variant='hourglass20',
-        num_filters=32,
-        upsample_factor=2
+    @parameterized.parameters(
+        (1, False),
+        (2, True),
     )
-    roi_features = np.random.rand(2, 10, 16, 16, 16)
-    roi_classes = np.zeros((2, 10))
-    masks = mask_head([roi_features, roi_classes])
-    self.assertAllEqual(masks.numpy().shape, [2, 10, 32, 32])
+    def ttest_instance_head_hourglass(self, num, afp):
+        print("---------------------------Test forward of HG-20.{}---------------------------".format(num))
+        mask_head = deep_instance_heads.DeepMaskHead(
+            num_classes=3,
+            class_agnostic=True,
+            convnet_variant='hourglass20',
+            num_filters=32,
+            upsample_factor=2,
+            crop_size=16
+        )
+        # roi_features = np.random.rand(2, 10, 16, 16, 16)
+        if not afp:
+            roi_features = np.random.rand(2, 10, 16, 16, 16)
+        else:
+            roi_features = []
+            for i in range(3, 7 + 1):
+                roi_features.append(np.random.rand(2, 10, 16, 16, 16))
+        roi_classes = np.zeros((2, 10))
+        masks = mask_head([roi_features, roi_classes], afp=afp)
+        print("masks.shape:", masks.numpy().shape)
+        self.assertAllEqual(masks.numpy().shape, [2, 10, 32, 32])
+        print("---------------------------------------------------------------------------")
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

@@ -152,7 +152,7 @@ class COCOEvaluator(object):
 
     coco_eval = cocoeval.COCOeval(coco_gt, coco_dt, iouType='bbox')
     coco_eval.params.imgIds = image_ids
-    coco_eval.params.catIds = NON_VOC
+    # coco_eval.params.catIds = NON_VOC
     coco_eval.evaluate()
     coco_eval.accumulate()
     coco_eval.summarize()

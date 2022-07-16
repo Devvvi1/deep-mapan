@@ -4,8 +4,11 @@ task:
   allowed_mask_class_ids: [1, 2, 3, 4, 5, 6, 7, 9, 16, 17, 18, 19, 20, 21, 44, 62, 63, 64, 67, 72]
   per_category_metrics: true
   model:
+    bpa: false
+    afp: false
     mask_head:
       class_agnostic: true
+      # convnet_variant: 'fully-connected'
     use_gt_boxes_for_masks: true
     backbone:
       type: 'resnet'
@@ -29,5 +32,5 @@ trainer:
       stepwise:
         boundaries: [50000, 65000]
       type: 'stepwise'
-  train_steps: 70000 # 70000
+  train_steps: 10 # 70000
   validation_steps: 156  # 5000 / 32

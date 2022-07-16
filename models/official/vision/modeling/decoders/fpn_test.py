@@ -26,14 +26,14 @@ from official.vision.modeling.decoders import fpn
 class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
   @parameterized.parameters(
-      (256, 3, 7, False, False, 'sum'),
-      (256, 3, 7, False, True, 'sum'),
-      (256, 3, 7, True, False, 'concat'),
-      (256, 3, 7, True, True, 'concat'),
+      (1, 256, 3, 7, False, False, 'sum'),
+      (2, 256, 3, 7, False, True, 'concat'),
   )
-  def test_network_creation(self, input_size, min_level, max_level,
-                            use_separable_conv, use_keras_layer, fusion_type):
+  # 主要测试每个 level 的特征图的 shape
+  def test_network_creation(self, num, input_size, min_level, max_level, bpa,
+                            use_separable_conv, fusion_type):
     """Test creation of FPN."""
+    print("\n---------------------------Test creation of FPN.{}---------------------------".format(num))
     tf.keras.backend.set_image_data_format('channels_last')
 
     inputs = tf.keras.Input(shape=(input_size, input_size, 3), batch_size=1)
@@ -43,9 +43,9 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         input_specs=backbone.output_specs,
         min_level=min_level,
         max_level=max_level,
+        bpa=bpa,
         fusion_type=fusion_type,
-        use_separable_conv=use_separable_conv,
-        use_keras_layer=use_keras_layer)
+        use_separable_conv=use_separable_conv)
 
     endpoints = backbone(inputs)
     feats = network(endpoints)
@@ -55,17 +55,17 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
       self.assertAllEqual(
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
+      print("feats[", level, "].shape:", feats[str(level)].shape.as_list())
+    print("----------------------------------------------------------------------------\n")
 
   @parameterized.parameters(
-      (256, 3, 7, False, False),
-      (256, 3, 7, False, True),
-      (256, 3, 7, True, False),
-      (256, 3, 7, True, True),
+      (1, 256, 3, 7, False),
+      (2, 256, 3, 7, True),
   )
-  def test_network_creation_with_mobilenet(self, input_size, min_level,
-                                           max_level, use_separable_conv,
-                                           use_keras_layer):
+  def test_network_creation_with_mobilenet(self, num, input_size, min_level,
+                                           max_level, use_separable_conv):
     """Test creation of FPN with mobilenet backbone."""
+    print("\n---------------------------Test creation of FPN with mobilenet.{}---------------------------".format(num))
     tf.keras.backend.set_image_data_format('channels_last')
 
     inputs = tf.keras.Input(shape=(input_size, input_size, 3), batch_size=1)
@@ -75,8 +75,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         input_specs=backbone.output_specs,
         min_level=min_level,
         max_level=max_level,
-        use_separable_conv=use_separable_conv,
-        use_keras_layer=use_keras_layer)
+        use_separable_conv=use_separable_conv)
 
     endpoints = backbone(inputs)
     feats = network(endpoints)
@@ -86,17 +85,20 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
       self.assertAllEqual(
           [1, input_size // 2**level, input_size // 2**level, 256],
           feats[str(level)].shape.as_list())
+      print("feats[", level, "].shape:", feats[str(level)].shape.as_list())
+    print("----------------------------------------------------------------------------\n")
 
   def test_serialize_deserialize(self):
     # Create a network object that sets all of its config options.
+    print("\n---------------------------Test config of FPN---------------------------")
     kwargs = dict(
         input_specs=resnet.ResNet(model_id=50).output_specs,
         min_level=3,
         max_level=7,
+        bpa=False,
         num_filters=256,
         fusion_type='sum',
         use_separable_conv=False,
-        use_keras_layer=False,
         use_sync_bn=False,
         activation='relu',
         norm_momentum=0.99,
@@ -118,6 +120,7 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
 
     # If the serialization was successful, the new config should match the old.
     self.assertAllEqual(network.get_config(), new_network.get_config())
+    print("------------------------------------------------------------------------\n")
 
 
 if __name__ == '__main__':

@@ -120,7 +120,8 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
            gt_boxes: Optional[tf.Tensor] = None,
            gt_classes: Optional[tf.Tensor] = None,
            gt_masks: Optional[tf.Tensor] = None,
-           training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+           training: Optional[bool] = None,
+           afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
     # print("-"*20, "in models.deep-maskrcnn_model.call()")
     # ------------ 运行box branch -------------#
     # print("images.shape:", tf.shape(images))
@@ -139,7 +140,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
     # print("a:{} b:{} c:{} d:{}".format(a, b, c, d))
     model_outputs, intermediate_outputs = self._call_box_outputs(
         images=images, image_shape=image_shape, anchor_boxes=anchor_boxes,
-        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training)
+        gt_boxes=gt_boxes, gt_classes=gt_classes, training=training, afp=afp)
     if not self._include_mask:
       return model_outputs
 
@@ -153,7 +154,8 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
         gt_masks=gt_masks,
         gt_classes=gt_classes,
         gt_boxes=gt_boxes,
-        training=training)
+        training=training,
+        afp=afp)
     model_outputs.update(model_mask_outputs)
     # print("-"*20, "out models.deep-maskrcnn_model.call()")
     return model_outputs
@@ -183,7 +185,8 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
       gt_masks: tf.Tensor,
       gt_classes: tf.Tensor,
       gt_boxes: tf.Tensor,
-      training: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
+      training: Optional[bool] = None,
+      afp: Optional[bool] = None) -> Mapping[str, tf.Tensor]:
 
     model_outputs = dict(model_box_outputs)
     if training:
@@ -224,7 +227,7 @@ class DeepMaskRCNNModel(maskrcnn_model.MaskRCNNModel):
       mask_head_classes = roi_classes
 
     mask_logits, mask_probs = self._features_to_mask_outputs(
-        features, roi_aligner_boxes, mask_head_classes)
+        features, roi_aligner_boxes, mask_head_classes, afp)
 
     if training:
       model_outputs.update({

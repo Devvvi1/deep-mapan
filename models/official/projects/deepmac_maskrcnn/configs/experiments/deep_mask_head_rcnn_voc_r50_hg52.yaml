@@ -4,6 +4,8 @@ task:
   allowed_mask_class_ids: [1, 2, 3, 4, 5, 6, 7, 9, 16, 17, 18, 19, 20, 21, 44, 62, 63, 64, 67, 72]
   per_category_metrics: true
   model:
+    bpa: false
+    afp: false
     mask_head:
       class_agnostic: true
       convnet_variant: 'hourglass52'

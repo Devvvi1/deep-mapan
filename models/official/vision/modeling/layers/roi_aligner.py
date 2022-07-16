@@ -41,7 +41,8 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
   def call(self,
            features: Mapping[str, tf.Tensor],
            boxes: tf.Tensor,
-           training: bool = None):
+           training: bool = None,
+           afp: bool = None):
     """Generates ROIs.
 
     Args:
@@ -57,11 +58,38 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
       A 5-D `tf.Tensor` representing feature crop of shape
       [batch_size, num_boxes, crop_size, crop_size, num_filters].
     """
-    roi_features = spatial_transform_ops.multilevel_crop_and_resize(
-        features,
-        boxes,
-        output_size=self._config_dict['crop_size'],
-        sample_offset=self._config_dict['sample_offset'])
+    # print("-------- RoI Aligner info --------")
+    if not afp:
+        # print("afp:False")
+        roi_features = spatial_transform_ops.multilevel_crop_and_resize(
+            features,
+            boxes,
+            output_size=self._config_dict['crop_size'],
+            sample_offset=self._config_dict['sample_offset'])
+    else:
+        # print("afp:True")
+        # 原 roi_features 为 [batch_size, num_boxes, crop_size, crop_size, num_filters]
+        # 若执行 AFP，则需 [batch_size, num_boxes, max_level-min_level+1, crop_size, crop_size, num_filters]
+        # 或存于列表 [feat3, feat4, feat5, feat6, feat7]
+        levels = list(features.keys())
+        min_level = int(min(levels))
+        max_level = int(max(levels))
+        # print("min_level:", min_level)
+        # print("max_level:", max_level)
+        roi_features = []
+        for i in range(min_level, max_level + 1):
+            # print("NO.{} roi aligner".format(i))
+            feats = spatial_transform_ops.multilevel_crop_and_resize(
+                features,
+                boxes,
+                output_size=self._config_dict['crop_size'],
+                sample_offset=self._config_dict['sample_offset'],
+                specified_level=int(i))
+            roi_features.append(feats)
+        # roi_features = tf.reshape()
+    # print("output size:", self._config_dict['crop_size'])
+    # print("len(roi_features):", len(roi_features))
+    # print("----------------------------------")
     return roi_features
 
   def get_config(self):
