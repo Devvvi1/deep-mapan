@@ -109,9 +109,12 @@ class FPNTest(parameterized.TestCase, tf.test.TestCase):
         bias_regularizer=None,
     )
     network = fpn.FPN(**kwargs)
-    logging.info('kwargs input_specs: %s', kwargs['input_specs'])
+
     expected_config = dict(kwargs)
-    self.assertEqual(network.get_config(), expected_config)
+    network_config = network.get_config()
+    logging.info('expected_config input_specs: %s', expected_config['input_specs'])
+    logging.info('network_config  input_specs: %s', network_config['input_specs'])
+    self.assertEqual(network_config, expected_config)
 
     # Create another network object from the first object's config.
     new_network = fpn.FPN.from_config(network.get_config())
