@@ -339,7 +339,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         variant = self._config_dict['convnet_variant']
         if variant == 'default':
-            print("now conv_kwargs['filters']:", conv_kwargs['filters'])
+            # print("now conv_kwargs['filters']:", conv_kwargs['filters'])
             # ------------ conv_head + nomrs -------------#
             num_convs_start = 0
             if isinstance(input_shape[0], List):

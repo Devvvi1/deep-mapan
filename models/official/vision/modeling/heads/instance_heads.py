@@ -218,7 +218,7 @@ class DetectionHead(tf.keras.layers.Layer):
     """
     roi_features = inputs
     if afp:
-        print("afp:True")
+        # print("afp:True")
         # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
