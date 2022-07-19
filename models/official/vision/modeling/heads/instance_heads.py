@@ -139,7 +139,8 @@ class DetectionHead(tf.keras.layers.Layer):
         num_convs_start = 1
         self._conv_head = []
         self._conv_head_norms = []
-        print("len(input_shape):", len(input_shape))
+        # print("len(input_shape):", len(input_shape))
+        print("detection._conv_head!")
         for i in range(len(input_shape)):
             conv_name = 'detection-conv-head_{}_{}'.format(0, i)
             if 'kernel_initializer' in conv_kwargs:

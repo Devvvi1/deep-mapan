@@ -317,7 +317,6 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
     def _build_convnet_variant(self, input_shape):
         conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
-        bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
         # print("-------- DeepMaskHead._build_convnet_variant() --------")
         # print("input_shape[0]:", input_shape[0])
         # print("len(input_shape[0]):", len(input_shape[0]))
@@ -339,15 +338,18 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         variant = self._config_dict['convnet_variant']
         if variant == 'default':
+            bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
             # print("now conv_kwargs['filters']:", conv_kwargs['filters'])
             # ------------ conv_head + nomrs -------------#
             num_convs_start = 0
             if isinstance(input_shape[0], List):
                 num_convs_start = 1
+                print("mask_head._conv_head!")
                 self._conv_head = []
                 self._conv_head_norms = []
                 for i in range(len(input_shape[0])):
                     conv_name = 'mask-conv-head_{}_{}'.format(0, i)
+                    conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
                     self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
                     bn_name = 'mask-conv-head-bn_{}_{}'.format(0, i)
                     self._conv_head_norms.append(bn_op(name=bn_name, **bn_kwargs))
@@ -357,17 +359,20 @@ class DeepMaskHead(tf.keras.layers.Layer):
             self._conv_norms = []
             for i in range(num_convs_start, self._config_dict['num_convs']):
                 conv_name = 'mask-conv_{}'.format(i)
+                conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
                 self._convs.append(conv_op(name=conv_name, **conv_kwargs))
                 bn_name = 'mask-conv-bn_{}'.format(i)
                 self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
         elif variant == 'fully-connected':
+            bn_op, bn_kwargs = self._get_bn_op_and_kwargs()
             # print("now conv_kwargs['filters']:", conv_kwargs['filters'])
             # ------------ conv_head + nomrs -------------#
             self._conv_head = []
             self._conv_head_norms = []
             for i in range(len(input_shape[0])):
                 conv_name = 'mask-conv-head_{}_{}'.format(0, i)
+                conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
                 self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
                 bn_name = 'mask-conv-head-bn_{}_{}'.format(0, i)
                 self._conv_head_norms.append(bn_op(name=bn_name, **bn_kwargs))
@@ -377,6 +382,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             self._conv_norms = []
             for i in range(1, self._config_dict['num_convs']):
                 conv_name = 'mask-conv_{}'.format(i)
+                conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
                 self._convs.append(conv_op(name=conv_name, **conv_kwargs))
                 bn_name = 'mask-conv-bn_{}'.format(i)
                 self._conv_norms.append(bn_op(name=bn_name, **bn_kwargs))
@@ -385,10 +391,12 @@ class DeepMaskHead(tf.keras.layers.Layer):
             self._conv_fc = []
             self._conv_fc_norms = []
             conv_name = 'mask-conv-fc_{}'.format(0)
+            conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
             self._conv_fc.append(conv_op(name=conv_name, **conv_kwargs))
             bn_name = 'mask-conv-bn-fc_{}'.format(0)
             self._conv_fc_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
+            conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
             conv_kwargs.update({'filters': filters / 2})
             # print("conv_kwargs['filters'] update for conv fc:", conv_kwargs['filters'])
 
