@@ -101,6 +101,7 @@ class MaskRCNNTask(base_task.Task):
 
     # Restoring checkpoint.
     if self.task_config.init_checkpoint_modules == 'all':
+      print("load ckpt in all mode!")
       ckpt = tf.train.Checkpoint(**model.checkpoint_items)
       status = ckpt.read(ckpt_dir_or_file)
       status.expect_partial().assert_existing_objects_matched()
