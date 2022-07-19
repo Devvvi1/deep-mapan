@@ -97,6 +97,8 @@ def deep_mask_head_rcnn_resnetfpn_coco() -> cfg.ExperimentConfig:
                   'stepwise': {
                       'boundaries': [15000, 20000],
                       'values': [0.12, 0.012, 0.0012],
+                      # 'boundaries': [0, 9560],
+                      # 'values': [0.012, 0.012, 0.0012],
                   }
               },
               'warmup': {

@@ -344,7 +344,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             num_convs_start = 0
             if isinstance(input_shape[0], List):
                 num_convs_start = 1
-                print("mask_head._conv_head!")
+                # print("mask_head._conv_head!")
                 self._conv_head = []
                 self._conv_head_norms = []
                 for i in range(len(input_shape[0])):
