@@ -321,7 +321,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # print("input_shape[0]:", input_shape[0])
         # print("len(input_shape[0]):", len(input_shape[0]))
         # print("crop_size is:", self._config_dict['crop_size'])
-        if isinstance(input_shape[0], List):
+        if True: # isinstance(input_shape[0], List):
             num_levels = len(input_shape[0])
             filters = input_shape[0][0][-1]
         else:
@@ -342,7 +342,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             # print("now conv_kwargs['filters']:", conv_kwargs['filters'])
             # ------------ conv_head + nomrs -------------#
             num_convs_start = 0
-            if isinstance(input_shape[0], List):
+            if True: # isinstance(input_shape[0], List):
                 num_convs_start = 1
                 # print("mask_head._conv_head!")
                 self._conv_head = []

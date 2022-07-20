@@ -164,7 +164,7 @@ class FPN(tf.keras.Model):
 
     # add for bpa buttom-up path
     # bpa = False
-    if bpa:
+    if True: # bpa:
         # print("bpa:True")
         # 取出 N3，它是由 P3 直接生成的
         # feats = {str(min_level): feats[str(min_level)]}

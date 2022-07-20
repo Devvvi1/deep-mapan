@@ -59,7 +59,7 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
       [batch_size, num_boxes, crop_size, crop_size, num_filters].
     """
     # print("-------- RoI Aligner info --------")
-    if not afp:
+    if False: # not afp:
         # print("afp:False")
         roi_features = spatial_transform_ops.multilevel_crop_and_resize(
             features,
