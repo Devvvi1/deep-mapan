@@ -321,20 +321,20 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # print("input_shape[0]:", input_shape[0])
         # print("len(input_shape[0]):", len(input_shape[0]))
         # print("crop_size is:", self._config_dict['crop_size'])
-        if True: # isinstance(input_shape[0], List):
+        if isinstance(input_shape[0], List):
             num_levels = len(input_shape[0])
-            filters = input_shape[0][0][-1]
+            # filters = input_shape[0][0][-1]
         else:
             num_levels = 1
-            filters = input_shape[0][-1]
-        old_filters = conv_kwargs['filters']
-        set_filters = self._config_dict['num_filters']
+            # filters = input_shape[0][-1]
+        # old_filters = conv_kwargs['filters']
+        # set_filters = self._config_dict['num_filters']
         # print("num_levels:", num_levels)
         # print("old filters:", old_filters)
         # print("input filters:", filters)
         # print("self._config_dict['num_filters']:", set_filters)
-        if filters != set_filters:
-            conv_kwargs.update({'filters': filters})
+        # if filters != set_filters:
+        #     conv_kwargs.update({'filters': filters})
 
         variant = self._config_dict['convnet_variant']
         if variant == 'default':

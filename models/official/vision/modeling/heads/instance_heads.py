@@ -135,7 +135,7 @@ class DetectionHead(tf.keras.layers.Layer):
     # print("input_shape:", input_shape)
     # ------------ conv_head + nomrs -------------#
     num_convs_start = 0
-    if True: # isinstance(input_shape, List):
+    if isinstance(input_shape, List):
         num_convs_start = 1
         self._conv_head = []
         self._conv_head_norms = []
