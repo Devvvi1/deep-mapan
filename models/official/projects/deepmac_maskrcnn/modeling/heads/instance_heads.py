@@ -212,8 +212,8 @@ class DeepMaskHead(tf.keras.layers.Layer):
         """
         roi_features, roi_classes = inputs
         # print("-------- Deep Mask Head info --------")
-        if afp:
-            print("mask_head.afp:True")
+        print("mask_head.afp:", afp)
+        if True:
             # print("len(roi_features):", len(roi_features))
             features_shape = tf.shape(roi_features[0])
             batch_size, num_rois, height, width, filters = (
@@ -335,7 +335,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # print("self._config_dict['num_filters']:", set_filters)
         # if filters != set_filters:
         #     conv_kwargs.update({'filters': filters})
-
+        filters = 256
         variant = self._config_dict['convnet_variant']
         if variant == 'default':
             bn_op, bn_kwargs = self._get_bn_op_and_kwargs()

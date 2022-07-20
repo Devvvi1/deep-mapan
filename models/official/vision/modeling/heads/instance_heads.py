@@ -218,8 +218,8 @@ class DetectionHead(tf.keras.layers.Layer):
         predictions.
     """
     roi_features = inputs
-    if afp:
-        print("detection.afp:True")
+    print("detection.afp:", afp)
+    if True:
         # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
