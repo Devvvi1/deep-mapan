@@ -35,6 +35,8 @@ class DeepMaskHead(maskrcnn_config.MaskHead):
 
 @dataclasses.dataclass
 class DeepMaskHeadRCNN(maskrcnn_config.MaskRCNN):
+  bpa: bool = False
+  afp: bool = False
   mask_head: Optional[DeepMaskHead] = DeepMaskHead()
   use_gt_boxes_for_masks: bool = False
 

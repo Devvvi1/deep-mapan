@@ -442,7 +442,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # print("-------------------------------------------------------")
 
     def _call_AFP_convnet(self, x, afp):
-        if afp:
+        if True: #afp:
             # ------------ Conv_head for each level -------------#
             # print("In AFP, len(x) is:", len(x))
             for i in range(len(x)):
@@ -457,7 +457,6 @@ class DeepMaskHead(tf.keras.layers.Layer):
         return x
 
     def _call_convnet_variant(self, x, afp: bool = None):
-
         variant = self._config_dict['convnet_variant']
         if variant == 'default':
             x = self._call_AFP_convnet(x, afp)
