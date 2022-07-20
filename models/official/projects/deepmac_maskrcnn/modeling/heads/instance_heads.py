@@ -213,7 +213,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         roi_features, roi_classes = inputs
         # print("-------- Deep Mask Head info --------")
         if afp:
-            # print("afp:True")
+            print("mask_head.afp:True")
             # print("len(roi_features):", len(roi_features))
             features_shape = tf.shape(roi_features[0])
             batch_size, num_rois, height, width, filters = (
@@ -243,7 +243,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         logits_ff = []
         if afp and isinstance(x, List):
-            # print("FF:True")
+            print("FF:True")
             x_ff = x[1]
             x = x[0]
             # x_ff 的 reshape 是否正确
@@ -452,6 +452,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
             # ------------ Fusion by max -------------#
             for i in range(1, len(x)):
                 x[0] = tf.maximum(x[0], x[i])
+                # x[0] = tf.keras.layers.Maximum()(x[0], x[i])
             x = x[0]
         return x
 

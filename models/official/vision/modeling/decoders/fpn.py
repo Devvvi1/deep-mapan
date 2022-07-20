@@ -164,8 +164,8 @@ class FPN(tf.keras.Model):
 
     # add for bpa buttom-up path
     # bpa = False
-    if True: # bpa:
-        # print("bpa:True")
+    if bpa:
+        print("bpa:True")
         # 取出 N3，它是由 P3 直接生成的
         # feats = {str(min_level): feats[str(min_level)]}
         for level in range(min_level + 1, backbone_max_level + 1):
@@ -187,6 +187,7 @@ class FPN(tf.keras.Model):
                     feats[str(level)] = tf.keras.layers.Add()([feat_a, feat_b])
                 else:
                     feats[str(level)] = feat_a + feat_b
+                tf.keras.layers.Maximum()
             elif fusion_type == 'concat':
                 if use_keras_layer:
                     feats[str(level)] = tf.keras.layers.Concatenate(axis=-1)(

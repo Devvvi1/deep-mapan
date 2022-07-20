@@ -33,7 +33,7 @@ trainer:
       stepwise:
         boundaries: [50000, 65000]
         # boundaries: [0, 9560]
-        # values: [0.012, 0.012, 0.0012]
+        values: [0.0012, 0.0012, 0.0012]
       type: 'stepwise'
   train_steps: 70000 # 70000
   validation_steps: 156  # 5000 / 32

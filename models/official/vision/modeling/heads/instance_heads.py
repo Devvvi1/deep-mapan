@@ -218,8 +218,8 @@ class DetectionHead(tf.keras.layers.Layer):
         predictions.
     """
     roi_features = inputs
-    if True: # :
-        # print("afp:True")
+    if afp:
+        print("detection.afp:True")
         # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
@@ -234,6 +234,7 @@ class DetectionHead(tf.keras.layers.Layer):
         # ------------ Fusion by max -------------#
         for i in range(1, len(x)):
             x[0] = tf.maximum(x[0], x[i])
+            # x[0] = tf.keras.layers.Maximum()(x[0], x[i])
         x = x[0]
     else:
         # print("afp:False")
