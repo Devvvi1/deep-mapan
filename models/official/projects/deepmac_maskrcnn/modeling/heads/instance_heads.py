@@ -451,8 +451,8 @@ class DeepMaskHead(tf.keras.layers.Layer):
                 x[i] = self._activation(x[i])
             # ------------ Fusion by max -------------#
             for i in range(1, len(x)):
-                x[0] = tf.maximum(x[0], x[i])
-                # x[0] = tf.keras.layers.Maximum()(x[0], x[i])
+                # x[0] = tf.maximum(x[0], x[i])
+                x[0] = tf.keras.layers.Maximum()(x[0], x[i])
             x = x[0]
         return x
 
