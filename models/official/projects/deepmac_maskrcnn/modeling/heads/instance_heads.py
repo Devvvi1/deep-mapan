@@ -213,7 +213,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         roi_features, roi_classes = inputs
         # print("-------- Deep Mask Head info --------")
         print("mask_head.afp:", afp)
-        if True:
+        if False:
             # print("len(roi_features):", len(roi_features))
             features_shape = tf.shape(roi_features[0])
             batch_size, num_rois, height, width, filters = (
@@ -342,17 +342,17 @@ class DeepMaskHead(tf.keras.layers.Layer):
             # print("now conv_kwargs['filters']:", conv_kwargs['filters'])
             # ------------ conv_head + nomrs -------------#
             num_convs_start = 0
-            if True: # isinstance(input_shape[0], List):
-                num_convs_start = 1
-                # print("mask_head._conv_head!")
-                self._conv_head = []
-                self._conv_head_norms = []
-                for i in range(len(input_shape[0])):
-                    conv_name = 'mask-conv-head_{}_{}'.format(0, i)
-                    conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
-                    self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
-                    bn_name = 'mask-conv-head-bn_{}_{}'.format(0, i)
-                    self._conv_head_norms.append(bn_op(name=bn_name, **bn_kwargs))
+            # if True: # isinstance(input_shape[0], List):
+            #     num_convs_start = 1
+            #     # print("mask_head._conv_head!")
+            #     self._conv_head = []
+            #     self._conv_head_norms = []
+            #     for i in range(len(input_shape[0])):
+            #         conv_name = 'mask-conv-head_{}_{}'.format(0, i)
+            #         conv_op, conv_kwargs = self._get_conv_op_and_kwargs()
+            #         self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
+            #         bn_name = 'mask-conv-head-bn_{}_{}'.format(0, i)
+            #         self._conv_head_norms.append(bn_op(name=bn_name, **bn_kwargs))
 
             # ------------ convs + nomrs -------------#
             self._convs = []
@@ -442,7 +442,7 @@ class DeepMaskHead(tf.keras.layers.Layer):
         # print("-------------------------------------------------------")
 
     def _call_AFP_convnet(self, x, afp):
-        if True: #afp:
+        if False: #afp:
             # ------------ Conv_head for each level -------------#
             # print("In AFP, len(x) is:", len(x))
             for i in range(len(x)):
@@ -453,7 +453,8 @@ class DeepMaskHead(tf.keras.layers.Layer):
             for i in range(1, len(x)):
                 # x[0] = tf.maximum(x[0], x[i])
                 # x[0] = tf.keras.layers.Maximum()([x[0], x[i]])
-                x[0] = tf.keras.layers.Add()([x[0], x[i]])
+                # x[0] = tf.keras.layers.Add()([x[0], x[i]])
+                x[0] = x[0] + x[i]
             x = x[0]
         return x
 

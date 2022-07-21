@@ -135,7 +135,8 @@ class DetectionHead(tf.keras.layers.Layer):
     # print("input_shape:", input_shape)
     # ------------ conv_head + nomrs -------------#
     num_convs_start = 0
-    if isinstance(input_shape, List):
+    if False: #isinstance(input_shape, List):
+        print("detection.afp build!")
         num_convs_start = 1
         self._conv_head = []
         self._conv_head_norms = []
@@ -219,7 +220,7 @@ class DetectionHead(tf.keras.layers.Layer):
     """
     roi_features = inputs
     print("detection.afp:", afp)
-    if True:
+    if False:
         # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []
@@ -235,7 +236,8 @@ class DetectionHead(tf.keras.layers.Layer):
         for i in range(1, len(x)):
             # x[0] = tf.maximum(x[0], x[i])
             # x[0] = tf.keras.layers.Maximum()([x[0], x[i]])
-            x[0] = tf.keras.layers.Add()([x[0], x[i]])
+            # x[0] = tf.keras.layers.Add()([x[0], x[i]])
+            x[0] = x[0] + x[i]
         x = x[0]
     else:
         # print("afp:False")

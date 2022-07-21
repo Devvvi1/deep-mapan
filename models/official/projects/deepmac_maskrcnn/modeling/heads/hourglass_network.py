@@ -197,7 +197,8 @@ class InputDownsampleBlock(tf.keras.layers.Layer):
             x[i] = self.conv_block[i](x[i])
         # ------------ Fusion by max -------------#
         for i in range(1, len(x)):
-            x[0] = tf.maximum(x[0], x[i])
+            # x[0] = tf.maximum(x[0], x[i])
+            x[0] = x[0] + x[i]
             # x[0] = tf.keras.layers.Maximum()(x[0], x[i])
         x = x[0]
         return self.residual_block(x)
@@ -242,7 +243,8 @@ class InputConvBlock(tf.keras.layers.Layer):
             x[i] = self.conv_block[i](x[i])
         # ------------ Fusion by max -------------#
         for i in range(1, len(x)):
-            x[0] = tf.maximum(x[0], x[i])
+            # x[0] = tf.maximum(x[0], x[i])
+            x[0] = x[0] + x[i]
             # x[0] = tf.keras.layers.Maximum()(x[0], x[i])
         x = x[0]
         return self.residual_block(x)

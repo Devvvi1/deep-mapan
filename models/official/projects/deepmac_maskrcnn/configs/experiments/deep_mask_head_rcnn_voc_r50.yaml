@@ -15,7 +15,7 @@ task:
       resnet:
         model_id: 50
   init_checkpoint: 'gs://cloud-tpu-checkpoints/vision-2.0/resnet50_imagenet/ckpt-28080'
-  init_checkpoint_modules: 'all'
+  # init_checkpoint_modules: 'all'
   annotation_file: 'gs://mapan/tf_data/coco/instances_val2017.json'
   train_data:
     global_batch_size: 64
@@ -33,7 +33,7 @@ trainer:
       stepwise:
         boundaries: [50000, 65000]
         # boundaries: [0, 9560]
-        values: [0.0012, 0.0012, 0.0012]
+        # values: [0.0012, 0.0012, 0.0012]
       type: 'stepwise'
   train_steps: 70000 # 70000
   validation_steps: 156  # 5000 / 32
