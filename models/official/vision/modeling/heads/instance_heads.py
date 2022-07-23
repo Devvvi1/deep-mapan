@@ -135,7 +135,7 @@ class DetectionHead(tf.keras.layers.Layer):
     # print("input_shape:", input_shape)
     # ------------ conv_head + nomrs -------------#
     num_convs_start = 0
-    if False: #isinstance(input_shape, List):
+    if True: #isinstance(input_shape, List):
         print("detection.afp build!")
         num_convs_start = 1
         self._conv_head = []
@@ -220,7 +220,7 @@ class DetectionHead(tf.keras.layers.Layer):
     """
     roi_features = inputs
     print("detection.afp:", afp)
-    if False:
+    if True:
         # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
         x = []

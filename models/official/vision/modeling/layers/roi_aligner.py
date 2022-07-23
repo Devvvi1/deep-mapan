@@ -60,7 +60,7 @@ class MultilevelROIAligner(tf.keras.layers.Layer):
     """
     # print("-------- RoI Aligner info --------")
     print("roialign.afp:", afp)
-    if True: # not afp:
+    if False: # not afp:
         # print("afp:False")
         roi_features = spatial_transform_ops.multilevel_crop_and_resize(
             features,
