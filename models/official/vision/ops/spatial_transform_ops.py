@@ -208,22 +208,35 @@ def multilevel_crop_and_resize(features,
     box_width = boxes[:, :, 3] - boxes[:, :, 1]
     box_height = boxes[:, :, 2] - boxes[:, :, 0]
 
-    if False: #specified_level:  # 直接使用指定 level
-        # levels = tf.add(tf.subtract(levels, levels), specified_level)
-        levels = tf.zeros([batch_size, num_boxes])
-        levels = tf.add(tf.cast(levels, tf.int32), specified_level)
-        # print("levels.shape:", tf.shape(levels))
-    else:
-        areas_sqrt = tf.sqrt(
-            tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
+    # if True: #specified_level:  # 直接使用指定 level
+    #     # levels = tf.add(tf.subtract(levels, levels), specified_level)
+    #     levels = tf.zeros([batch_size, num_boxes])
+    #     levels = tf.add(tf.cast(levels, tf.int32), specified_level)
+    #     # print("levels.shape:", tf.shape(levels))
+    # else:
+    #     areas_sqrt = tf.sqrt(
+    #         tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
+    #
+    #     levels = tf.cast(
+    #         tf.math.floordiv(
+    #             tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
+    #             tf.math.log(2.0)) + 4.0,
+    #         dtype=tf.int32)
+    #     # Maps levels between [min_level, max_level].
+    #     levels = tf.minimum(max_level, tf.maximum(levels, min_level))
 
-        levels = tf.cast(
-            tf.math.floordiv(
-                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
-                tf.math.log(2.0)) + 4.0,
-            dtype=tf.int32)
-        # Maps levels between [min_level, max_level].
-        levels = tf.minimum(max_level, tf.maximum(levels, min_level))
+    areas_sqrt = tf.sqrt(
+        tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32))
+
+    levels = tf.cast(
+        tf.math.floordiv(
+            tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
+            tf.math.log(2.0)) + 4.0,
+        dtype=tf.int32)
+    # Maps levels between [min_level, max_level].
+    levels = tf.minimum(max_level, tf.maximum(levels, min_level))
+    # afp
+    levels = tf.add(tf.subtract(levels, levels), specified_level)
 
     # ------------------ Projects box location and sizes to corresponding feature levels -------------------#
     # 将 boxes 从原图坐标转化到对应特征图的坐标，期间不存在量化操作

@@ -241,27 +241,27 @@ class DeepMaskHead(tf.keras.layers.Layer):
 
         x = self._call_convnet_variant(x, afp=afp)
 
-        logits_ff = []
-        if afp and isinstance(x, List):
-            print("FF:True")
-            x_ff = x[1]
-            x = x[0]
-            # x_ff 的 reshape 是否正确
-            _, _, _, filters = x_ff.get_shape().as_list()
-            # print("x_ff.shape:", tf.shape(x_ff))
-            # print("x.shape:", tf.shape(x))
-            # filters = tf.shape(x_ff)[-1]
-            # print("x_ff.filters:", filters)
-            x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
-            x_ff = self._fcs(x_ff)
-            x_ff = self._fc_norms(x_ff)
-            x_ff = self._activation(x_ff)
-            logits_ff = x_ff
-            # 维度为 (2, 10, 28*28)
-            # print("logits_ff.shape after fcs:", tf.shape(logits_ff))
-        else:
-            # print("FF:False")
-            i = 0
+        # logits_ff = []
+        # if afp and isinstance(x, List):
+        #     print("FF:True")
+        #     x_ff = x[1]
+        #     x = x[0]
+        #     # x_ff 的 reshape 是否正确
+        #     _, _, _, filters = x_ff.get_shape().as_list()
+        #     # print("x_ff.shape:", tf.shape(x_ff))
+        #     # print("x.shape:", tf.shape(x))
+        #     # filters = tf.shape(x_ff)[-1]
+        #     # print("x_ff.filters:", filters)
+        #     x_ff = tf.reshape(x_ff, [-1, num_rois, height * width * filters])
+        #     x_ff = self._fcs(x_ff)
+        #     x_ff = self._fc_norms(x_ff)
+        #     x_ff = self._activation(x_ff)
+        #     logits_ff = x_ff
+        #     # 维度为 (2, 10, 28*28)
+        #     # print("logits_ff.shape after fcs:", tf.shape(logits_ff))
+        # else:
+        #     # print("FF:False")
+        #     i = 0
 
         x = self._deconv(x)
         x = self._deconv_bn(x)
@@ -281,21 +281,21 @@ class DeepMaskHead(tf.keras.layers.Layer):
                  self._config_dict['num_classes']])
         # print("logits.shape before fusion:", tf.shape(logits))
 
-        if isinstance(logits_ff, tf.Tensor) and afp:
-            # 怎么将 logits_ff 先 reshape 成 1类，再复制为 num_class 类，最后再相加融合？
-            # x[1] = x[1].view(-1, 1, cfg.MRCNN.RESOLUTION, cfg.MRCNN.RESOLUTION)
-            # x[1] = x[1].repeat(1, cfg.MODEL.NUM_CLASSES, 1, 1)
-            # _, _, _, _, num_classes = logits.get_shape().as_list()
-            logits_ff = tf.expand_dims(logits_ff, -1)
-            logits_ff = tf.expand_dims(logits_ff, -1)
-            logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
-            # print("logits_ff.shape before fusion:", tf.shape(logits_ff))
-            logits = tf.add(logits, logits_ff)
-            # print("logits.shape after fusion:", tf.shape(logits))
-            # print("fusion:YES")
-        else:
-            # print("fusion:NO")
-            i = 1
+        # if isinstance(logits_ff, tf.Tensor) and afp:
+        #     # 怎么将 logits_ff 先 reshape 成 1类，再复制为 num_class 类，最后再相加融合？
+        #     # x[1] = x[1].view(-1, 1, cfg.MRCNN.RESOLUTION, cfg.MRCNN.RESOLUTION)
+        #     # x[1] = x[1].repeat(1, cfg.MODEL.NUM_CLASSES, 1, 1)
+        #     # _, _, _, _, num_classes = logits.get_shape().as_list()
+        #     logits_ff = tf.expand_dims(logits_ff, -1)
+        #     logits_ff = tf.expand_dims(logits_ff, -1)
+        #     logits_ff = tf.reshape(logits_ff, [-1, num_rois, mask_height, mask_width, 1])
+        #     # print("logits_ff.shape before fusion:", tf.shape(logits_ff))
+        #     logits = tf.add(logits, logits_ff)
+        #     # print("logits.shape after fusion:", tf.shape(logits))
+        #     # print("fusion:YES")
+        # else:
+        #     # print("fusion:NO")
+        #     i = 1
 
         batch_indices = tf.tile(
             tf.expand_dims(tf.range(batch_size), axis=1), [1, num_rois])
@@ -453,8 +453,8 @@ class DeepMaskHead(tf.keras.layers.Layer):
             for i in range(1, len(x)):
                 # x[0] = tf.maximum(x[0], x[i])
                 # x[0] = tf.keras.layers.Maximum()([x[0], x[i]])
-                # x[0] = tf.keras.layers.Add()([x[0], x[i]])
-                x[0] = x[0] + x[i]
+                x[0] = tf.keras.layers.Add()([x[0], x[i]])
+                # x[0] = x[0] + x[i]
             x = x[0]
         return x
 
