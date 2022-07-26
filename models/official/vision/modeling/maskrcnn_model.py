@@ -404,6 +404,7 @@ class MaskRCNNModel(tf.keras.Model):
 
   def _features_to_mask_outputs(self, features, rois, roi_classes, afp):
     # Mask RoI align.
+    print("mask_roi_aligner!")
     mask_roi_features = self.mask_roi_aligner(features, rois, afp=afp)
 
     # Mask head.
