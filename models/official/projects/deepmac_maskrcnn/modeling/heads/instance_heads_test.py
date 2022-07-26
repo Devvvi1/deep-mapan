@@ -28,7 +28,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
         # (1, 1, False, False),
         # (1, 2, False, False),
         # (2, 1, False, False),
-        (1, 2, 2, False, False),
+        # (1, 2, 2, False, False),
         (2, 2, 2, False, True),
     )
     def ttest_forward(self, num, upsample_factor, num_convs, use_sync_bn, afp):
@@ -84,7 +84,7 @@ class MaskHeadTest(parameterized.TestCase, tf.test.TestCase):
     @parameterized.parameters(
         # (1, 3, 'default', False),
         (2, 9, 'default', True),
-        (3, 9, 'fully-connected', True),
+        # (3, 9, 'fully-connected', True),
     )
     def test_forward_class_agnostic(self, num, num_classes, convnet_variant, afp):
         print("\n---------------------------Test forward of class agnostic.{}---------------------------\n".format(num))
