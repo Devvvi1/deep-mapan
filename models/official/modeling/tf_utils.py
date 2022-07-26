@@ -282,4 +282,5 @@ def clone_initializer(initializer):
   # When the input is string/dict or other serialized configs, caller will
   # create a new keras Initializer instance based on that, and we don't need to
   # do anything
+  print("do anything!")
   return initializer
