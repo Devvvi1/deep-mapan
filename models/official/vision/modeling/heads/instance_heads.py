@@ -145,6 +145,7 @@ class DetectionHead(tf.keras.layers.Layer):
         for i in range(len(input_shape)):
             conv_name = 'detection-conv-head_{}_{}'.format(0, i)
             if 'kernel_initializer' in conv_kwargs:
+                print("tf_utils.clone_initializer!")
                 conv_kwargs['kernel_initializer'] = tf_utils.clone_initializer(
                     conv_kwargs['kernel_initializer'])
             self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
