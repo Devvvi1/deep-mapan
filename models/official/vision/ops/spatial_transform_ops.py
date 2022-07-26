@@ -237,6 +237,7 @@ def multilevel_crop_and_resize(features,
     levels = tf.minimum(max_level, tf.maximum(levels, min_level))
     # afp
     levels = tf.add(tf.subtract(levels, levels), specified_level)
+    # levels = tf.minimum(specified_level, tf.maximum(levels, specified_level))
 
     # ------------------ Projects box location and sizes to corresponding feature levels -------------------#
     # 将 boxes 从原图坐标转化到对应特征图的坐标，期间不存在量化操作

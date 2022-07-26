@@ -136,16 +136,16 @@ class DetectionHead(tf.keras.layers.Layer):
     # ------------ conv_head + nomrs -------------#
     num_convs_start = 0
     if True: #isinstance(input_shape, List):
-        print("detection.afp build!")
+        # print("detection.afp build!")
         num_convs_start = 1
         self._conv_head = []
         self._conv_head_norms = []
-        print("len(input_shape):", len(input_shape))
+        # print("len(input_shape):", len(input_shape))
         # print("detection._conv_head!")
         for i in range(len(input_shape)):
             conv_name = 'detection-conv-head_{}_{}'.format(0, i)
             if 'kernel_initializer' in conv_kwargs:
-                print("tf_utils.clone_initializer!")
+                # print("tf_utils.clone_initializer!")
                 conv_kwargs['kernel_initializer'] = tf_utils.clone_initializer(
                     conv_kwargs['kernel_initializer'])
             self._conv_head.append(conv_op(name=conv_name, **conv_kwargs))
@@ -220,7 +220,7 @@ class DetectionHead(tf.keras.layers.Layer):
         predictions.
     """
     roi_features = inputs
-    print("detection.afp:", afp)
+    # print("detection.afp:", afp)
     if True:
         # print("len(roi_features):", len(roi_features))
         _, num_rois, height, width, filters = roi_features[0].get_shape().as_list()
