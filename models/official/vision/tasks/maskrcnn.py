@@ -378,7 +378,7 @@ class MaskRCNNTask(base_task.Task):
     images, labels = inputs
     # labels_keys = list(labels.keys())
     # print("labels keys:", labels_keys)
-    print("self.task_config.model.afp:", self.task_config.model.afp)
+    # print("self.task_config.model.afp:", self.task_config.model.afp)
     num_replicas = tf.distribute.get_strategy().num_replicas_in_sync
     with tf.GradientTape() as tape:
       outputs = model(
@@ -438,7 +438,7 @@ class MaskRCNNTask(base_task.Task):
       A dictionary of logs.
     """
     images, labels = inputs
-    print("self.task_config.model.afp:", self.task_config.model.afp)
+    # print("self.task_config.model.afp:", self.task_config.model.afp)
     outputs = model(
         images,
         anchor_boxes=labels['anchor_boxes'],

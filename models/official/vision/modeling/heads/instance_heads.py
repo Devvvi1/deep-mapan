@@ -237,8 +237,8 @@ class DetectionHead(tf.keras.layers.Layer):
         for i in range(1, len(x)):
             # x[0] = tf.maximum(x[0], x[i])
             # x[0] = tf.keras.layers.Maximum()([x[0], x[i]])
-            x[0] = tf.keras.layers.Add()([x[0], x[i]])
-            # x[0] = x[0] + x[i]
+            # x[0] = tf.keras.layers.Add()([x[0], x[i]])
+            x[0] = x[0] + x[i]
         x = x[0]
     else:
         # print("afp:False")
