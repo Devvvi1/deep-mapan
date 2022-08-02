@@ -35,5 +35,5 @@ trainer:
         # boundaries: [0, 9560]
         # values: [0.012, 0.012, 0.0012]
       type: 'stepwise'
-  train_steps: 70000
+  train_steps: 100000
   validation_steps: 156  # 5000 / 32
